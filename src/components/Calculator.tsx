@@ -107,7 +107,7 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
   };
 
   return (
-    <section id="calculator" className="py-24 bg-slate-900 border-y border-slate-800 text-white scroll-mt-20">
+    <section id="calculator" className="py-24 bg-slate-800 border-y border-slate-700 text-white scroll-mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Heading */}
@@ -128,11 +128,11 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* Left Column: Calculator Inputs (8 cols on lg) */}
-          <div className="lg:col-span-7 bg-slate-950 border border-slate-800/80 p-6 sm:p-8 rounded-3xl space-y-8 shadow-xl">
+          <div className="lg:col-span-7 bg-slate-900 border border-slate-800/80 p-6 sm:p-8 rounded-3xl space-y-8 shadow-xl">
             
             {/* Step 1: Vehicle Type */}
             <div>
-              <span className="inline-flex items-center justify-center bg-slate-900 text-slate-400 font-bold h-6 w-6 rounded-full text-xs mr-2 border border-slate-800">1</span>
+              <span className="inline-flex items-center justify-center bg-slate-800 text-slate-300 font-bold h-6 w-6 rounded-full text-xs mr-2 border border-slate-700">1</span>
               <label className="text-sm font-bold uppercase tracking-wider text-slate-300">Оберіть тип транспортного засобу</label>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
@@ -143,7 +143,7 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
                     className={`flex items-center justify-between p-4 rounded-2xl border text-left transition-all cursor-pointer ${
                       selectedType === type.id
                         ? 'bg-amber-500/10 border-amber-500 text-white shadow-lg'
-                        : 'bg-slate-900 border-slate-800/60 text-slate-400 hover:border-slate-700 hover:text-slate-300'
+                        : 'bg-slate-800 border-slate-700/60 text-slate-400 hover:border-slate-600 hover:text-slate-300'
                     }`}
                     id={`calc-type-${type.id}`}
                   >
@@ -168,7 +168,7 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
             <div>
               <div className="flex justify-between items-center mb-3">
                 <div className="flex items-center">
-                  <span className="inline-flex items-center justify-center bg-slate-900 text-slate-400 font-bold h-6 w-6 rounded-full text-xs mr-2 border border-slate-800">2</span>
+                  <span className="inline-flex items-center justify-center bg-slate-800 text-slate-300 font-bold h-6 w-6 rounded-full text-xs mr-2 border border-slate-700">2</span>
                   <label className="text-sm font-bold uppercase tracking-wider text-slate-300">Відстань транспортування</label>
                 </div>
                 <span className="font-display font-black text-2xl text-amber-500 bg-amber-500/5 px-3.5 py-1 rounded-xl border border-amber-500/20 shadow-inner">
@@ -183,7 +183,7 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
                   max="150"
                   value={distance}
                   onChange={(e) => setDistance(Number(e.target.value))}
-                  className="w-full h-2 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                  className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
                   id="distance-slider"
                 />
                 <div className="flex justify-between text-[11px] text-slate-500 font-semibold px-1">
@@ -195,15 +195,17 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
               </div>
             </div>
 
-            {/* Step 3: Additional Issues */}
+            {/* Step 3: Extras */}
             <div>
-              <span className="inline-flex items-center justify-center bg-slate-900 text-slate-400 font-bold h-6 w-6 rounded-full text-xs mr-2 border border-slate-800">3</span>
-              <label className="text-sm font-bold uppercase tracking-wider text-slate-300">Додаткові фактори складності</label>
+              <div className="flex items-center mb-4">
+                <span className="inline-flex items-center justify-center bg-slate-800 text-slate-300 font-bold h-6 w-6 rounded-full text-xs mr-2 border border-slate-700">3</span>
+                <label className="text-sm font-bold uppercase tracking-wider text-slate-300">Додаткові фактори складності</label>
+              </div>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 
                 {/* Locked wheels */}
-                <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col justify-between space-y-3">
+                <div className="bg-slate-800 border border-slate-700 p-4 rounded-2xl flex flex-col justify-between space-y-3">
                   <div>
                     <p className="font-bold text-sm text-slate-300">Заблоковані колеса</p>
                     <p className="text-xs text-slate-500 mt-0.5">Вимагає використання підкатних візків</p>
@@ -216,7 +218,7 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
                         className={`flex-1 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
                           lockedWheels === count
                             ? 'bg-amber-500 border-amber-500 text-slate-950'
-                            : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                            : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-650'
                         }`}
                         id={`locked-wheels-${count}`}
                       >
@@ -233,7 +235,7 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
                   className={`p-4 rounded-2xl border text-left flex flex-col justify-between h-full transition-all cursor-pointer ${
                     steeringIssue
                       ? 'bg-amber-500/10 border-amber-500 text-white'
-                      : 'bg-slate-900 border-slate-800/60 text-slate-400 hover:border-slate-700'
+                      : 'bg-slate-800 border-slate-700/60 text-slate-400 hover:border-slate-600'
                   }`}
                   id="steering-issue-checkbox"
                 >
@@ -243,7 +245,7 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
                       <p className="text-xs text-slate-500 mt-0.5 leading-snug">Заблоковане рульове керування</p>
                     </div>
                     <div className={`h-5 w-5 rounded-md border flex items-center justify-center transition-all ${
-                      steeringIssue ? 'bg-amber-500 border-amber-500 text-slate-950' : 'border-slate-700'
+                      steeringIssue ? 'bg-amber-500 border-amber-500 text-slate-950' : 'border-slate-650'
                     }`}>
                       {steeringIssue && <Check className="h-3.5 w-3.5 stroke-[3]" />}
                     </div>
@@ -257,7 +259,7 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
                   className={`p-4 rounded-2xl border text-left flex flex-col justify-between h-full transition-all cursor-pointer ${
                     ditchPull
                       ? 'bg-amber-500/10 border-amber-500 text-white'
-                      : 'bg-slate-900 border-slate-800/60 text-slate-400 hover:border-slate-700'
+                      : 'bg-slate-800 border-slate-700/60 text-slate-400 hover:border-slate-600'
                   }`}
                   id="ditch-pull-checkbox"
                 >
@@ -267,7 +269,7 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
                       <p className="text-xs text-slate-500 mt-0.5 leading-snug">Автомобіль за межами дороги</p>
                     </div>
                     <div className={`h-5 w-5 rounded-md border flex items-center justify-center transition-all ${
-                      ditchPull ? 'bg-amber-500 border-amber-500 text-slate-950' : 'border-slate-700'
+                      ditchPull ? 'bg-amber-500 border-amber-500 text-slate-950' : 'border-slate-650'
                     }`}>
                       {ditchPull && <Check className="h-3.5 w-3.5 stroke-[3]" />}
                     </div>
@@ -281,7 +283,7 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
                   className={`p-4 rounded-2xl border text-left flex flex-col justify-between h-full transition-all cursor-pointer ${
                     isNightTime
                       ? 'bg-amber-500/10 border-amber-500 text-white'
-                      : 'bg-slate-900 border-slate-800/60 text-slate-400 hover:border-slate-700'
+                      : 'bg-slate-800 border-slate-700/60 text-slate-400 hover:border-slate-600'
                   }`}
                   id="night-time-checkbox"
                 >
@@ -291,7 +293,7 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
                       <p className="text-xs text-slate-500 mt-0.5 leading-snug">Підвищений тариф у темну пору</p>
                     </div>
                     <div className={`h-5 w-5 rounded-md border flex items-center justify-center transition-all ${
-                      isNightTime ? 'bg-amber-500 border-amber-500 text-slate-950' : 'border-slate-700'
+                      isNightTime ? 'bg-amber-500 border-amber-500 text-slate-950' : 'border-slate-650'
                     }`}>
                       {isNightTime && <Check className="h-3.5 w-3.5 stroke-[3]" />}
                     </div>
@@ -308,7 +310,7 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
           <div className="lg:col-span-5 space-y-6">
 
             {/* Instant Booking Form */}
-            <div className="bg-slate-950 border border-slate-800/80 p-6 sm:p-8 rounded-3xl shadow-xl">
+            <div className="bg-slate-900 border border-slate-800/80 p-6 sm:p-8 rounded-3xl shadow-xl">
               <p className="text-xs text-slate-400 mb-5">
                 Введіть контакти, і ми миттєво почнемо пошук найближчого евакуатора.
               </p>
@@ -333,7 +335,7 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
                         placeholder="+38 (0XX) XXX-XX-XX"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 focus:border-amber-500 rounded-xl py-2.5 px-3.5 text-white text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
+                        className="w-full bg-slate-800 border border-slate-700 focus:border-amber-500 rounded-xl py-2.5 px-3.5 text-white text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
                         id="calc-phone"
                       />
                     </div>
@@ -344,7 +346,7 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
                         placeholder="Олександр"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 focus:border-amber-500 rounded-xl py-2.5 px-3.5 text-white text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
+                        className="w-full bg-slate-800 border border-slate-700 focus:border-amber-500 rounded-xl py-2.5 px-3.5 text-white text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
                         id="calc-name"
                       />
                     </div>
@@ -358,7 +360,7 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
                       placeholder="Наприклад: Львів або Київ"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 focus:border-amber-500 rounded-xl py-2.5 px-3.5 text-white text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
+                      className="w-full bg-slate-800 border border-slate-700 focus:border-amber-500 rounded-xl py-2.5 px-3.5 text-white text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
                       id="calc-city"
                     />
                     <div className="flex flex-wrap gap-1 mt-1.5">
@@ -370,7 +372,7 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
                           className={`text-[9px] px-2 py-0.5 rounded border font-semibold transition-all cursor-pointer ${
                             city === item
                               ? 'bg-amber-500/15 border-amber-500 text-amber-400'
-                              : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:text-slate-300 hover:border-slate-700'
+                              : 'bg-slate-800/40 border-slate-700 text-slate-400 hover:text-slate-300 hover:border-slate-600'
                           }`}
                         >
                           {item}
@@ -388,7 +390,7 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
                         placeholder="Адреса, де стоїть авто"
                         value={fromAddress}
                         onChange={(e) => setFromAddress(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 focus:border-amber-500 rounded-xl py-2.5 px-3.5 text-white text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
+                        className="w-full bg-slate-800 border border-slate-700 focus:border-amber-500 rounded-xl py-2.5 px-3.5 text-white text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
                         id="calc-from-address"
                       />
                     </div>
@@ -400,7 +402,7 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
                         placeholder="Адреса доставки / СТО"
                         value={toAddress}
                         onChange={(e) => setToAddress(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 focus:border-amber-500 rounded-xl py-2.5 px-3.5 text-white text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
+                        className="w-full bg-slate-800 border border-slate-700 focus:border-amber-500 rounded-xl py-2.5 px-3.5 text-white text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
                         id="calc-to-address"
                       />
                     </div>
@@ -487,7 +489,7 @@ export default function PricingCalculator({ onOrderCreated }: CalculatorProps) {
               </div>
 
               {/* Total Price Section */}
-              <div className="bg-slate-950 text-white rounded-2xl p-5 flex items-center justify-between border border-slate-800 shadow-lg relative z-10">
+              <div className="bg-slate-900 text-white rounded-2xl p-5 flex items-center justify-between border border-slate-800 shadow-lg relative z-10">
                 <div>
                   <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Разом до сплати</p>
                   <p className="text-[11px] text-emerald-400 font-semibold mt-0.5 flex items-center">

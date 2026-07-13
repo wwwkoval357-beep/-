@@ -9,10 +9,10 @@ interface FooterProps {
 
 export default function Footer({ onScrollTo, onCallClick, onAdminClick }: FooterProps) {
   return (
-    <footer className="bg-slate-950 text-white border-t border-slate-900 pt-16 pb-12">
+    <footer className="bg-slate-900 text-white border-t border-slate-800 pt-16 pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 border-b border-slate-900 pb-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 border-b border-slate-800 pb-12 mb-12">
           
           {/* Col 1: Brand & Desc */}
           <div className="space-y-4">
@@ -41,7 +41,7 @@ export default function Footer({ onScrollTo, onCallClick, onAdminClick }: Footer
               </li>
               <li>
                 <button onClick={() => onScrollTo('calculator')} className="hover:text-amber-500 transition-colors cursor-pointer">
-                  Онлайн калькулятор
+                  Online калькулятор
                 </button>
               </li>
               <li>
@@ -55,7 +55,7 @@ export default function Footer({ onScrollTo, onCallClick, onAdminClick }: Footer
                 </button>
               </li>
               {onAdminClick && (
-                <li className="pt-1.5 border-t border-slate-900">
+                <li className="pt-1.5 border-t border-slate-800">
                   <button onClick={onAdminClick} className="text-slate-500 hover:text-amber-500 font-bold transition-colors cursor-pointer flex items-center gap-1.5">
                     🔒 Панель адміна
                   </button>

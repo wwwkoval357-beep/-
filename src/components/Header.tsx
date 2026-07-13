@@ -68,7 +68,7 @@ export default function Header({ onScrollTo, onCallClick, onAdminClick }: Header
           {onAdminClick && (
             <button
               onClick={onAdminClick}
-              className="p-2.5 sm:p-3 bg-slate-950 hover:bg-slate-800 text-slate-400 hover:text-amber-500 border border-slate-800 hover:border-amber-500/30 rounded-xl transition-all cursor-pointer"
+              className="p-2.5 sm:p-3 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-amber-500 border border-slate-700 hover:border-amber-500/30 rounded-xl transition-all cursor-pointer"
               title="Панель адміністратора"
               id="admin-btn-header"
             >

@@ -37,7 +37,7 @@ const ADVANTAGES = [
 
 export default function Advantages() {
   return (
-    <section id="advantages" className="py-24 bg-slate-900 border-b border-slate-800 text-white scroll-mt-20">
+    <section id="advantages" className="py-24 bg-slate-800 border-b border-slate-700 text-white scroll-mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
@@ -63,10 +63,10 @@ export default function Advantages() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.05 }}
-              className="bg-slate-950 border border-slate-800 p-6 sm:p-8 rounded-3xl space-y-4 hover:border-slate-700 hover:shadow-xl transition-all"
+              className="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl space-y-4 hover:border-slate-700 hover:shadow-xl transition-all"
               id={`adv-card-${idx}`}
             >
-              <div className="bg-slate-900 h-12 w-12 rounded-2xl flex items-center justify-center border border-slate-800/80 shadow-inner">
+              <div className="bg-slate-800 h-12 w-12 rounded-2xl flex items-center justify-center border border-slate-700/80 shadow-inner">
                 {adv.icon}
               </div>
               <h3 className="font-display font-bold text-lg text-slate-100">

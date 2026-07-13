@@ -56,7 +56,7 @@ const SERVICES = [
 
 export default function Services({ onSelectService }: ServicesProps) {
   return (
-    <section id="services" className="py-24 bg-slate-950 text-white scroll-mt-20">
+    <section id="services" className="py-24 bg-slate-900 text-white scroll-mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section header */}
@@ -74,7 +74,7 @@ export default function Services({ onSelectService }: ServicesProps) {
             </p>
           </div>
           <div className="flex shrink-0">
-            <span className="text-xs bg-slate-900 border border-slate-800 text-slate-300 font-semibold px-4 py-2.5 rounded-2xl flex items-center shadow-inner">
+            <span className="text-xs bg-slate-800 border border-slate-700 text-slate-300 font-semibold px-4 py-2.5 rounded-2xl flex items-center shadow-inner">
               <Sparkles className="h-4 w-4 text-amber-500 mr-2" />
               Усі ціни фіксуються в договорі
             </span>
@@ -90,12 +90,12 @@ export default function Services({ onSelectService }: ServicesProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.05 }}
-              className="bg-slate-900 border border-slate-800/80 rounded-3xl p-6 sm:p-8 flex flex-col justify-between hover:border-slate-700 hover:shadow-2xl hover:shadow-slate-950/50 transition-all group"
+              className="bg-slate-800 border border-slate-700/80 rounded-3xl p-6 sm:p-8 flex flex-col justify-between hover:border-slate-650 hover:shadow-2xl hover:shadow-slate-950/50 transition-all group"
             >
               <div className="space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
-                  <div className="text-4xl bg-slate-950 h-14 w-14 rounded-2xl flex items-center justify-center border border-slate-800/80 shadow-inner group-hover:scale-110 group-hover:border-amber-500/30 transition-all">
+                  <div className="text-4xl bg-slate-900 h-14 w-14 rounded-2xl flex items-center justify-center border border-slate-700/80 shadow-inner group-hover:scale-110 group-hover:border-amber-500/30 transition-all">
                     {service.icon}
                   </div>
                   <div className="text-right">
@@ -113,7 +113,7 @@ export default function Services({ onSelectService }: ServicesProps) {
                 </div>
 
                 {/* Features list */}
-                <ul className="space-y-2.5 pt-4 border-t border-slate-800/60">
+                <ul className="space-y-2.5 pt-4 border-t border-slate-700/60">
                   {service.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start text-xs text-slate-300 font-medium">
                       <Check className="h-4 w-4 text-emerald-400 mr-2 shrink-0 stroke-[2.5]" />
@@ -127,7 +127,7 @@ export default function Services({ onSelectService }: ServicesProps) {
               <div className="pt-8">
                 <button
                   onClick={() => onSelectService(service.id)}
-                  className="w-full bg-slate-950 hover:bg-amber-500 text-slate-300 hover:text-slate-950 border border-slate-800 hover:border-amber-500 font-bold uppercase tracking-wider py-3.5 rounded-xl transition-all text-xs flex items-center justify-center space-x-1.5 cursor-pointer group-hover:shadow-lg"
+                  className="w-full bg-slate-900 hover:bg-amber-500 text-slate-300 hover:text-slate-950 border border-slate-700 hover:border-amber-500 font-bold uppercase tracking-wider py-3.5 rounded-xl transition-all text-xs flex items-center justify-center space-x-1.5 cursor-pointer group-hover:shadow-lg"
                   id={`service-order-btn-${service.id}`}
                 >
                   <span>Розрахувати або Замовити</span>

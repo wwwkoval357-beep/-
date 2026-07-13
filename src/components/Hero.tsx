@@ -9,9 +9,9 @@ interface HeroProps {
 
 export default function Hero({ onScrollTo }: HeroProps) {
   return (
-    <section className="relative bg-slate-950 text-white pt-24 pb-28 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section className="relative bg-slate-900 text-white pt-24 pb-28 px-4 sm:px-6 lg:px-8 overflow-hidden">
       {/* Abstract Background Accents */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-25"></div>
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-25"></div>
       
       {/* Amber/Green glow */}
       <div className="absolute -top-40 right-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -20,7 +20,7 @@ export default function Hero({ onScrollTo }: HeroProps) {
       <div className="max-w-4xl mx-auto text-center flex flex-col items-center space-y-8 relative z-10 animate-fade-in">
         
         <div className="space-y-6 flex flex-col items-center">
-          <div className="inline-flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-full text-xs text-amber-500 font-semibold tracking-wider uppercase shadow-md">
+          <div className="inline-flex items-center space-x-2 bg-slate-800 border border-slate-700 px-3.5 py-1.5 rounded-full text-xs text-amber-500 font-semibold tracking-wider uppercase shadow-md">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>

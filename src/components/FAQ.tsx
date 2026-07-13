@@ -33,7 +33,7 @@ export default function FAQ() {
   };
 
   return (
-    <section id="faq" className="py-24 bg-slate-900 border-b border-slate-800 text-white scroll-mt-20">
+    <section id="faq" className="py-24 bg-slate-800 border-b border-slate-700 text-white scroll-mt-20">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         
         {/* Header */}
@@ -57,7 +57,7 @@ export default function FAQ() {
             return (
               <div
                 key={idx}
-                className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden transition-all duration-200"
+                className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden transition-all duration-200"
               >
                 <button
                   onClick={() => toggleFAQ(idx)}
@@ -65,7 +65,7 @@ export default function FAQ() {
                   id={`faq-btn-${idx}`}
                 >
                   <span>{faq.question}</span>
-                  <span className="ml-4 p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 shrink-0">
+                  <span className="ml-4 p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 shrink-0">
                     {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </span>
                 </button>
@@ -78,7 +78,7 @@ export default function FAQ() {
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.2 }}
                     >
-                      <div className="px-5 pb-5 sm:px-6 sm:pb-6 text-xs sm:text-sm text-slate-400 leading-relaxed font-medium border-t border-slate-900 pt-4">
+                      <div className="px-5 pb-5 sm:px-6 sm:pb-6 text-xs sm:text-sm text-slate-400 leading-relaxed font-medium border-t border-slate-800 pt-4">
                         {faq.answer}
                       </div>
                     </motion.div>

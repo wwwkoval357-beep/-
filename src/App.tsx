@@ -227,7 +227,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans antialiased selection:bg-amber-500 selection:text-slate-950">
+    <div className="min-h-screen bg-slate-900 text-white font-sans antialiased selection:bg-amber-500 selection:text-slate-950">
       {/* Toast Notification for Telegram Status */}
       <AnimatePresence>
         {telegramStatus && (
@@ -235,7 +235,7 @@ export default function App() {
             initial={{ opacity: 0, y: -50, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="fixed top-6 right-6 z-50 max-w-sm w-full bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl p-4 overflow-hidden"
+            className="fixed top-6 right-6 z-50 max-w-sm w-full bg-slate-800/95 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl p-4 overflow-hidden"
           >
             <div className="flex items-start gap-3">
               {telegramStatus.warning ? (
@@ -260,7 +260,7 @@ export default function App() {
                   {telegramStatus.message}
                 </p>
                 {telegramStatus.warning && (
-                  <div className="mt-2.5 bg-slate-950/60 rounded-lg p-2 text-[10px] text-slate-400 leading-normal border border-slate-900">
+                  <div className="mt-2.5 bg-slate-900/60 rounded-lg p-2 text-[10px] text-slate-400 leading-normal border border-slate-800">
                     💡 <span className="font-bold text-slate-300">Налаштування:</span> Додайте змінні середовища <code className="text-amber-500 font-mono">TELEGRAM_BOT_TOKEN</code> та <code className="text-amber-500 font-mono">TELEGRAM_CHAT_ID</code> у налаштуваннях проєкту, щоб отримувати реальні сповіщення.
                   </div>
                 )}
@@ -287,7 +287,7 @@ export default function App() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setLastCreatedOrder(null)}
-              className="absolute inset-0 bg-slate-950/80 backdrop-blur-md cursor-pointer"
+              className="absolute inset-0 bg-slate-900/80 backdrop-blur-md cursor-pointer"
             />
 
             {/* Modal Body */}
@@ -296,7 +296,7 @@ export default function App() {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               transition={{ type: "spring", duration: 0.5 }}
-              className="relative w-full max-w-md bg-slate-900 border border-slate-800/80 rounded-3xl p-6 sm:p-8 text-center shadow-2xl overflow-hidden"
+              className="relative w-full max-w-md bg-slate-800 border border-slate-700/80 rounded-3xl p-6 sm:p-8 text-center shadow-2xl overflow-hidden"
               id="success-confirmation-modal"
             >
               {/* Outer Amber glow inside modal */}
@@ -316,7 +316,7 @@ export default function App() {
                 Замовлення успішно створено!
               </h3>
               
-              <div className="bg-slate-950/60 border border-slate-800/50 rounded-2xl p-4 my-5">
+              <div className="bg-slate-900/60 border border-slate-800/50 rounded-2xl p-4 my-5">
                 <p className="text-amber-400 font-bold text-base sm:text-lg leading-relaxed animate-pulse">
                   🔔 Очікуйте, з вами зв'яжеться водій!
                 </p>
@@ -377,7 +377,7 @@ export default function App() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsPhoneModalOpen(false)}
-              className="absolute inset-0 bg-slate-950/80 backdrop-blur-md cursor-pointer"
+              className="absolute inset-0 bg-slate-900/80 backdrop-blur-md cursor-pointer"
             />
 
             {/* Modal Body */}
@@ -386,7 +386,7 @@ export default function App() {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 15 }}
               transition={{ type: "spring", duration: 0.4 }}
-              className="relative w-full max-w-sm bg-slate-900 border border-slate-800/80 rounded-3xl p-6 text-center shadow-2xl overflow-hidden"
+              className="relative w-full max-w-sm bg-slate-800 border border-slate-700/80 rounded-3xl p-6 text-center shadow-2xl overflow-hidden"
               id="phone-call-modal"
             >
               {/* Decorative top blur */}
@@ -415,7 +415,7 @@ export default function App() {
               </h3>
 
               {/* Phone number display */}
-              <div className="bg-slate-950 border border-slate-800/60 rounded-2xl py-3.5 px-4 mb-5 flex items-center justify-between">
+              <div className="bg-slate-900 border border-slate-700/60 rounded-2xl py-3.5 px-4 mb-5 flex items-center justify-between">
                 <span className="font-display font-bold text-lg text-amber-500 tracking-wide select-all">
                   +38 (099) 082-32-25
                 </span>

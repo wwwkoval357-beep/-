@@ -13,7 +13,7 @@ export default function ActiveOrders({ orders, onCancelOrder, onUpdateOrderStatu
   if (orders.length === 0) return null;
 
   return (
-    <section id="active-orders" className="py-16 bg-slate-950 text-white border-b border-slate-900 scroll-mt-20 relative overflow-hidden">
+    <section id="active-orders" className="py-16 bg-slate-900 text-white border-b border-slate-800 scroll-mt-20 relative overflow-hidden">
       {/* Decorative pulse glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none animate-pulse"></div>
 
@@ -94,12 +94,12 @@ function ActiveOrderCard({ order, onCancelOrder, onUpdateOrderStatus }: ActiveOr
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -50 }}
-      className="bg-slate-900 border-2 border-slate-800 rounded-3xl overflow-hidden shadow-2xl relative animate-fade-in"
+      className="bg-slate-800 border-2 border-slate-700 rounded-3xl overflow-hidden shadow-2xl relative animate-fade-in"
     >
       {/* Order Top Banner */}
-      <div className="bg-slate-800/50 px-6 py-4 flex flex-wrap justify-between items-center gap-4 border-b border-slate-800/80">
+      <div className="bg-slate-700/50 px-6 py-4 flex flex-wrap justify-between items-center gap-4 border-b border-slate-700/80">
         <div className="flex items-center space-x-2">
-          <div className="bg-amber-500 text-slate-950 p-1.5 rounded-lg font-mono font-black text-xs">
+          <div className="bg-amber-500 text-slate-900 p-1.5 rounded-lg font-mono font-black text-xs">
             {order.orderNumber || `#${order.id.toUpperCase()}`}
           </div>
           <span className="text-xs text-slate-400 font-medium">Створено о {order.createdAt}</span>
@@ -126,7 +126,7 @@ function ActiveOrderCard({ order, onCancelOrder, onUpdateOrderStatus }: ActiveOr
       <div className="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-12 gap-8">
         
         {/* Left part: Order specifications */}
-        <div className="md:col-span-5 space-y-4 text-sm border-b md:border-b-0 md:border-r border-slate-800 pb-6 md:pb-0 md:pr-6">
+        <div className="md:col-span-5 space-y-4 text-sm border-b md:border-b-0 md:border-r border-slate-700 pb-6 md:pb-0 md:pr-6">
           <p className="font-bold text-slate-300 uppercase tracking-wider text-xs flex items-center">
             <ShieldCheck className="h-4 w-4 mr-1.5 text-emerald-400" /> Деталі замовлення
           </p>
@@ -158,7 +158,7 @@ function ActiveOrderCard({ order, onCancelOrder, onUpdateOrderStatus }: ActiveOr
         <div className="md:col-span-7 flex flex-col justify-between space-y-6">
           <div className="relative">
             {/* Timeline connector lines */}
-            <div className="absolute left-[11px] top-4 bottom-4 w-0.5 bg-slate-800"></div>
+            <div className="absolute left-[11px] top-4 bottom-4 w-0.5 bg-slate-700"></div>
 
             {/* Step 1: Request received */}
             <div className="relative flex items-start space-x-3.5 mb-6">
@@ -187,10 +187,10 @@ function ActiveOrderCard({ order, onCancelOrder, onUpdateOrderStatus }: ActiveOr
             <div className="relative flex items-start space-x-3.5 mb-6">
               <div className={`z-10 p-1.5 rounded-full shadow-lg transition-all ${
                 order.status === 'pending'
-                  ? 'bg-slate-800 text-slate-500 border border-slate-700'
+                  ? 'bg-slate-700 text-slate-500 border border-slate-600'
                   : order.status === 'dispatched'
-                  ? 'bg-amber-500 text-slate-950 animate-pulse shadow-amber-500/30'
-                  : 'bg-emerald-500 text-slate-950 shadow-emerald-500/20'
+                  ? 'bg-amber-500 text-slate-900 animate-pulse shadow-amber-500/30'
+                  : 'bg-emerald-500 text-slate-900 shadow-emerald-500/20'
               }`}>
                 <Truck className="h-3.5 w-3.5" />
               </div>
@@ -214,8 +214,8 @@ function ActiveOrderCard({ order, onCancelOrder, onUpdateOrderStatus }: ActiveOr
             <div className="relative flex items-start space-x-3.5">
               <div className={`z-10 p-1.5 rounded-full shadow-lg transition-all ${
                 order.status === 'completed'
-                  ? 'bg-emerald-500 text-slate-950 shadow-emerald-500/20'
-                  : 'bg-slate-800 text-slate-500 border border-slate-700'
+                  ? 'bg-emerald-500 text-slate-900 shadow-emerald-500/20'
+                  : 'bg-slate-700 text-slate-500 border border-slate-600'
               }`}>
                 <Navigation className="h-3.5 w-3.5 transform rotate-45" />
               </div>
