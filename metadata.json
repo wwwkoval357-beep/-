@@ -1,0 +1,6 @@
+{
+  "name": "Евакуатор 24/7",
+  "description": "Професійні послуги евакуатора по всій Україні. Швидка подача, прозорі ціни, калькулятор вартості та замовлення в один клік.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
