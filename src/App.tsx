@@ -410,12 +410,9 @@ export default function App() {
               </div>
 
               {/* Title & Info */}
-              <h3 className="font-display font-black text-xl text-white mb-1.5">
-                Виклик евакуатора
+              <h3 className="font-display font-black text-xl text-white mb-6">
+                Виклик оператора
               </h3>
-              <p className="text-xs text-slate-400 max-w-[260px] mx-auto mb-6">
-                Натисніть нижче, щоб здійснити дзвінок диспетчеру або скопіюйте номер телефону.
-              </p>
 
               {/* Phone number display */}
               <div className="bg-slate-950 border border-slate-800/60 rounded-2xl py-3.5 px-4 mb-5 flex items-center justify-between">

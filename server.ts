@@ -346,10 +346,17 @@ ${isInvalidTelegramUrl ? `🔗 *Підтвердити виїзд:* ${confirmUrl
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
+    // Robust resolution: if __dirname contains 'dist', we are running inside dist/
+    // Otherwise, we are running from root and need to append 'dist'
+    const distPath = __dirname.endsWith('dist') || __dirname.includes('dist/') || __dirname.includes('dist\\')
+      ? __dirname 
+      : path.join(process.cwd(), 'dist');
+    
+    console.log(`[Production] Serving static files from: ${distPath}`);
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+      const indexPath = path.join(distPath, 'index.html');
+      res.sendFile(indexPath);
     });
   }
 

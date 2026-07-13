@@ -110,9 +110,6 @@ export default function Services({ onSelectService }: ServicesProps) {
                   <h3 className="font-display font-black text-xl text-slate-100 group-hover:text-amber-400 transition-colors">
                     {service.title}
                   </h3>
-                  <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                    {service.description}
-                  </p>
                 </div>
 
                 {/* Features list */}
