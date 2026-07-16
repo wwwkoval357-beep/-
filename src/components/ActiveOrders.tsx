@@ -152,6 +152,37 @@ function ActiveOrderCard({ order, onCancelOrder, onUpdateOrderStatus }: ActiveOr
               </span>
             </div>
           </div>
+
+          {order.driverId && (
+            <div className="pt-4 border-t border-slate-700/60 mt-4 animate-slideUp">
+              <p className="font-bold text-slate-300 uppercase tracking-wider text-xs flex items-center mb-3">
+                <Truck className="h-4 w-4 mr-1.5 text-amber-500" /> Призначений водій
+              </p>
+              <div className="bg-slate-900/40 border border-slate-750 rounded-2xl p-3.5 space-y-2.5 shadow-inner">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-slate-400">Водій:</span>
+                  <span className="text-xs font-black text-white">{order.driverName}</span>
+                </div>
+                {order.driverPhone && (
+                  <div className="flex justify-between items-center pt-2 border-t border-slate-800/40">
+                    <span className="text-xs text-slate-400">Телефон:</span>
+                    <a href={`tel:${order.driverPhone}`} className="text-xs font-black text-amber-400 hover:underline flex items-center gap-1">
+                      <Phone className="h-3 w-3" />
+                      {order.driverPhone}
+                    </a>
+                  </div>
+                )}
+                {order.driverPlate && (
+                  <div className="flex justify-between items-center pt-2 border-t border-slate-800/40">
+                    <span className="text-xs text-slate-400">Номер авто:</span>
+                    <span className="text-xs font-mono font-black text-white uppercase bg-slate-950 border border-slate-800 px-2 py-0.5 rounded shadow-sm">
+                      {order.driverPlate}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right part: Status Timeline */}
@@ -204,7 +235,9 @@ function ActiveOrderCard({ order, onCancelOrder, onUpdateOrderStatus }: ActiveOr
                   {order.status === 'pending'
                     ? 'Очікуємо підтвердження та відправлення спецтехніки...'
                     : order.status === 'dispatched'
-                    ? 'Спецтехніка вже виїхала за вказаною адресою! Очікуйте на прибуття найближчим часом.'
+                    ? order.driverName
+                      ? `Евакуатор під керуванням водія ${order.driverName} вже виїхав за вказаною адресою! Очікуйте на прибуття.`
+                      : 'Спецтехніка вже виїхала за вказаною адресою! Очікуйте на прибуття найближчим часом.'
                     : 'Евакуатор прибув до місця призначення.'}
                 </p>
               </div>
@@ -248,11 +281,14 @@ function ActiveOrderCard({ order, onCancelOrder, onUpdateOrderStatus }: ActiveOr
 
           {/* Dispatched Simulation Link */}
           {order.status === 'dispatched' && (
-            <div className="bg-amber-500/5 border border-amber-500/10 p-4 rounded-2xl flex flex-col space-y-3">
+            <div className="bg-amber-500/5 border border-amber-500/10 p-4 rounded-2xl flex flex-col space-y-3 animate-pulse-subtle">
               <div className="flex items-center space-x-3">
                 <Clock className="h-5 w-5 text-amber-500 animate-pulse shrink-0" />
                 <span className="text-xs text-amber-400/95 leading-normal">
-                  Евакуатор виїхав і знаходиться в дорозі. Водій зв'яжеться з вами найближчим часом.
+                  {order.driverName 
+                    ? `Евакуатор (водій ${order.driverName}) виїхав і знаходиться в дорозі.` 
+                    : 'Евакуатор виїхав і знаходиться в дорозі.'}
+                  {order.driverPhone ? ` Ви можете зв'язатися з водієм за номером ${order.driverPhone}.` : " Водій зв'яжеться з вами найближчим часом."}
                 </span>
               </div>
             </div>
