@@ -29,9 +29,28 @@ async function startServer() {
     status: 'pending' | 'searching' | 'dispatched' | 'completed';
     createdAt: string;
     etaMinutes: number;
+    driverId?: string;
+    driverName?: string;
+    driverPhone?: string;
+    driverPlate?: string;
+  }
+
+  interface ServerDriver {
+    id: string;
+    name: string;
+    phone: string;
+    vehiclePlate: string;
+    status: 'active' | 'busy' | 'offline';
+    city?: string;
   }
 
   let ordersDb: ServerOrder[] = [];
+  let driversDb: ServerDriver[] = [
+    { id: "drv-1", name: "Іван Ковальчук", phone: "+380671112233", vehiclePlate: "BC 1234 HP", status: "active", city: "Львів" },
+    { id: "drv-2", name: "Олексій Шевченко", phone: "+380502223344", vehiclePlate: "AA 5678 KM", status: "active", city: "Київ" },
+    { id: "drv-3", name: "Дмитро Кравченко", phone: "+380933334455", vehiclePlate: "AE 9012 BC", status: "busy", city: "Дніпро" },
+    { id: "drv-4", name: "Микола Кот", phone: "+380684445566", vehiclePlate: "BH 3456 OO", status: "active", city: "Одеса" }
+  ];
   let lastOrderNumber = 1000;
 
   // API route for getting all orders
@@ -89,6 +108,123 @@ async function startServer() {
     const { id } = req.body;
     ordersDb = ordersDb.filter(o => o.id !== id);
     res.json({ success: true, orders: ordersDb });
+  });
+
+  // GET all drivers
+  app.get("/api/admin/drivers", (req, res) => {
+    res.json(driversDb);
+  });
+
+  // Save (Create/Update) driver
+  app.post("/api/admin/drivers/save", (req, res) => {
+    const driver = req.body as ServerDriver;
+    if (!driver.name || !driver.phone || !driver.vehiclePlate) {
+      return res.status(400).json({ success: false, error: "Будь ласка, заповніть всі обов'язкові поля" });
+    }
+
+    if (driver.id) {
+      // Edit
+      const index = driversDb.findIndex(d => d.id === driver.id);
+      if (index !== -1) {
+        driversDb[index] = {
+          ...driversDb[index],
+          ...driver
+        };
+      } else {
+        return res.status(404).json({ success: false, error: "Водія не знайдено" });
+      }
+    } else {
+      // Create
+      const newDriver: ServerDriver = {
+        ...driver,
+        id: `drv-${Math.random().toString(36).substring(2, 9)}`,
+        status: driver.status || 'active'
+      };
+      driversDb.push(newDriver);
+    }
+
+    res.json({ success: true, drivers: driversDb });
+  });
+
+  // Delete driver
+  app.post("/api/admin/drivers/delete", (req, res) => {
+    const { id } = req.body;
+    if (!id) {
+      return res.status(400).json({ success: false, error: "Не вказано ID водія" });
+    }
+    driversDb = driversDb.filter(d => d.id !== id);
+    res.json({ success: true, drivers: driversDb });
+  });
+
+  // Assign driver to order
+  app.post("/api/admin/assign-driver", async (req, res) => {
+    const { orderId, driverId } = req.body;
+    const order = ordersDb.find(o => o.id === orderId);
+    if (!order) {
+      return res.status(404).json({ success: false, error: "Замовлення не знайдено" });
+    }
+
+    if (!driverId) {
+      // Unassign
+      order.driverId = undefined;
+      order.driverName = undefined;
+      order.driverPhone = undefined;
+      order.driverPlate = undefined;
+      return res.json({ success: true, order, orders: ordersDb });
+    }
+
+    const driver = driversDb.find(d => d.id === driverId);
+    if (!driver) {
+      return res.status(404).json({ success: false, error: "Водія не знайдено в базі даних" });
+    }
+
+    order.driverId = driver.id;
+    order.driverName = driver.name;
+    order.driverPhone = driver.phone;
+    order.driverPlate = driver.vehiclePlate;
+
+    // Automatically transition to dispatched if it was pending or searching
+    if (order.status === 'pending' || order.status === 'searching') {
+      order.status = 'dispatched';
+      order.etaMinutes = 15;
+    }
+
+    // Attempt to notify Telegram about driver assignment
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+
+    if (botToken && chatId) {
+      try {
+        const message = `
+👨‍✈️ *ПРИЗНАЧЕНО ВОДІЯ НА ВИКЛИК* 👨‍✈️
+
+🎫 *Замовлення:* ${order.orderNumber || `#${order.id}`}
+👤 *Клієнт:* ${order.name}
+📞 *Телефон:* ${order.phone}
+
+🚚 *Евакуаторник:* ${driver.name}
+📱 *Телефон водія:* ${driver.phone}
+🔢 *Номер машини:* ${driver.vehiclePlate}
+🏙️ *Місто роботи:* ${driver.city || "Не вказано"}
+
+⏱️ *Орієнтовний час прибуття:* 15 хв.
+        `.trim();
+
+        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: message,
+            parse_mode: "Markdown"
+          }),
+        });
+      } catch (err) {
+        console.error("Failed to send driver assignment message to Telegram:", err);
+      }
+    }
+
+    res.json({ success: true, order, orders: ordersDb });
   });
 
   // API route for confirming/dispatching an order from Telegram link

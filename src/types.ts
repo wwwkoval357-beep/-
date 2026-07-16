@@ -15,6 +15,19 @@ export interface TowOrder {
   status: 'pending' | 'searching' | 'dispatched' | 'completed';
   createdAt: string;
   etaMinutes: number;
+  driverId?: string;
+  driverName?: string;
+  driverPhone?: string;
+  driverPlate?: string;
+}
+
+export interface Driver {
+  id: string;
+  name: string;
+  phone: string;
+  vehiclePlate: string;
+  status: 'active' | 'busy' | 'offline';
+  city?: string;
 }
 
 export interface ServiceItem {
