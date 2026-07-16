@@ -204,22 +204,22 @@ function ActiveOrderCard({ order, onCancelOrder, onUpdateOrderStatus }: ActiveOr
                 <p className={`font-bold text-xs uppercase tracking-wider ${
                   order.status === 'pending' ? 'text-amber-400' : 'text-white'
                 }`}>
-                  Заявку прийнято оператором
+                  {order.status === 'pending' ? 'Заявку надіслано' : 'Заявку підтверджено'}
                 </p>
                 <p className="text-xs text-slate-400 mt-0.5">
                   {order.status === 'pending'
-                    ? 'Ми прийняли замовлення. Очікуємо підтвердження оператором з Telegram...'
-                    : 'Заявку успішно прийнято та підтверджено.'}
+                    ? 'Ми прийняли ваше замовлення. Очікуємо підтвердження диспетчером...'
+                    : 'Заявку успішно прийнято та підтверджено диспетчером.'}
                 </p>
               </div>
             </div>
 
-            {/* Step 2: Dispatched */}
+            {/* Step 2: Driver Search / Dispatch */}
             <div className="relative flex items-start space-x-3.5 mb-6">
               <div className={`z-10 p-1.5 rounded-full shadow-lg transition-all ${
                 order.status === 'pending'
                   ? 'bg-slate-700 text-slate-500 border border-slate-600'
-                  : order.status === 'dispatched'
+                  : order.status === 'searching'
                   ? 'bg-amber-500 text-slate-900 animate-pulse shadow-amber-500/30'
                   : 'bg-emerald-500 text-slate-900 shadow-emerald-500/20'
               }`}>
@@ -227,18 +227,26 @@ function ActiveOrderCard({ order, onCancelOrder, onUpdateOrderStatus }: ActiveOr
               </div>
               <div>
                 <p className={`font-bold text-xs uppercase tracking-wider ${
-                  order.status === 'dispatched' ? 'text-amber-400' : order.status === 'pending' ? 'text-slate-500' : 'text-white'
+                  order.status === 'searching'
+                    ? 'text-amber-400'
+                    : order.status === 'pending'
+                    ? 'text-slate-500'
+                    : 'text-white'
                 }`}>
-                  {order.status === 'pending' ? 'Евакуатор готується до виїзду' : 'Евакуатор виїхав на допомогу!'}
+                  {order.status === 'pending'
+                    ? 'Пошук евакуатора'
+                    : order.status === 'searching'
+                    ? 'Пошук вільного евакуатора'
+                    : 'Евакуатор виїхав на допомогу!'}
                 </p>
                 <p className="text-xs text-slate-400 mt-0.5">
                   {order.status === 'pending'
-                    ? 'Очікуємо підтвердження та відправлення спецтехніки...'
-                    : order.status === 'dispatched'
-                    ? order.driverName
-                      ? `Евакуатор під керуванням водія ${order.driverName} вже виїхав за вказаною адресою! Очікуйте на прибуття.`
-                      : 'Спецтехніка вже виїхала за вказаною адресою! Очікуйте на прибуття найближчим часом.'
-                    : 'Евакуатор прибув до місця призначення.'}
+                    ? 'Очікуємо підтвердження замовлення для підбору техніки...'
+                    : order.status === 'searching'
+                    ? 'Диспетчер шукає та призначає найближчого вільного водія...'
+                    : order.driverName
+                    ? `Евакуатор під керуванням водія ${order.driverName} вже в дорозі до вас.`
+                    : 'Спецтехніка вже виїхала за вказаною адресою!'}
                 </p>
               </div>
             </div>
@@ -248,20 +256,28 @@ function ActiveOrderCard({ order, onCancelOrder, onUpdateOrderStatus }: ActiveOr
               <div className={`z-10 p-1.5 rounded-full shadow-lg transition-all ${
                 order.status === 'completed'
                   ? 'bg-emerald-500 text-slate-900 shadow-emerald-500/20'
+                  : order.status === 'dispatched'
+                  ? 'bg-amber-500 text-slate-900 animate-pulse shadow-amber-500/30'
                   : 'bg-slate-700 text-slate-500 border border-slate-600'
               }`}>
                 <Navigation className="h-3.5 w-3.5 transform rotate-45" />
               </div>
               <div>
                 <p className={`font-bold text-xs uppercase tracking-wider ${
-                  order.status === 'completed' ? 'text-emerald-400' : 'text-slate-500'
+                  order.status === 'completed'
+                    ? 'text-emerald-400'
+                    : order.status === 'dispatched'
+                    ? 'text-amber-400'
+                    : 'text-slate-500'
                 }`}>
                   {order.status === 'completed' ? 'Евакуатор прибув на місце!' : 'Прибуття на місце події'}
                 </p>
                 <p className="text-xs text-slate-400 mt-0.5">
                   {order.status === 'completed'
                     ? 'Фахівець на місці і розпочав завантаження вашого автомобіля.'
-                    : 'Очікуємо прибуття евакуатора за вказаною адресою.'}
+                    : order.status === 'dispatched'
+                    ? `Евакуатор в дорозі. Очікуваний час прибуття: ~${order.etaMinutes || 15} хв.`
+                    : 'Очікуємо виїзд евакуатора.'}
                 </p>
               </div>
             </div>

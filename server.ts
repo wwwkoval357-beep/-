@@ -217,7 +217,11 @@ async function startServer() {
           body: JSON.stringify({
             chat_id: chatId,
             text: message,
-            parse_mode: "Markdown"
+            parse_mode: "Markdown",
+            disable_web_page_preview: true,
+            link_preview_options: {
+              is_disabled: true
+            }
           }),
         });
       } catch (err) {
@@ -674,6 +678,10 @@ ${isInvalidTelegramUrl ? `🔗 *Підтвердити виїзд:* ${confirmUrl
         chat_id: chatId,
         text: message,
         parse_mode: "Markdown",
+        disable_web_page_preview: true,
+        link_preview_options: {
+          is_disabled: true
+        }
       };
 
       if (!isInvalidTelegramUrl) {
