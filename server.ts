@@ -171,6 +171,10 @@ async function startServer() {
       order.driverName = undefined;
       order.driverPhone = undefined;
       order.driverPlate = undefined;
+      if (order.status === 'dispatched') {
+        order.status = 'searching';
+        order.etaMinutes = undefined;
+      }
       return res.json({ success: true, order, orders: ordersDb });
     }
 
@@ -350,9 +354,6 @@ async function startServer() {
       return res.status(404).send(`Замовлення з ID ${orderId} не знайдено у списку активних`);
     }
 
-    order.status = 'dispatched';
-    order.etaMinutes = 15; // Set a default ETA of 15 minutes when dispatched
-
     if (driverId) {
       const driver = driversDb.find(d => d.id === driverId);
       if (driver) {
@@ -361,7 +362,15 @@ async function startServer() {
         order.driverPhone = driver.phone;
         order.driverPlate = driver.vehiclePlate;
         driver.status = 'busy'; // Update driver status as busy
+        order.status = 'dispatched';
+        order.etaMinutes = 15;
+      } else {
+        order.status = 'searching';
+        order.etaMinutes = undefined;
       }
+    } else {
+      order.status = 'searching';
+      order.etaMinutes = undefined;
     }
 
     // Try to notify Telegram about dispatch & driver info

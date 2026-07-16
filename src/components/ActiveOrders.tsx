@@ -295,6 +295,18 @@ function ActiveOrderCard({ order, onCancelOrder, onUpdateOrderStatus }: ActiveOr
             </div>
           )}
 
+          {/* Searching Simulation Link */}
+          {order.status === 'searching' && (
+            <div className="bg-amber-500/5 border border-amber-500/10 p-4 rounded-2xl flex flex-col space-y-3 animate-pulse-subtle">
+              <div className="flex items-center space-x-3">
+                <Clock className="h-5 w-5 text-amber-500 animate-pulse shrink-0" />
+                <span className="text-xs text-amber-400/95 leading-normal">
+                  Заявку підтверджено! Диспетчер підбирає та призначає найближчого вільного водія евакуатора...
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Dispatched Simulation Link */}
           {order.status === 'dispatched' && (
             <div className="bg-amber-500/5 border border-amber-500/10 p-4 rounded-2xl flex flex-col space-y-3 animate-pulse-subtle">
