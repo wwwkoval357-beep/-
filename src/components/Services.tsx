@@ -69,9 +69,6 @@ export default function Services({ onSelectService }: ServicesProps) {
             <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl tracking-tight">
               Наші послуги <span className="text-amber-500">евакуації</span>
             </h2>
-            <p className="text-slate-400 mt-4 text-sm sm:text-base">
-              Оберіть відповідну категорію транспорту. Наш автопарк укомплектований сучасними евакуаторами з висувними платформами, лебідками та маніпуляторами.
-            </p>
           </div>
           <div className="flex shrink-0">
             <span className="text-xs bg-slate-800 border border-slate-700 text-slate-300 font-semibold px-4 py-2.5 rounded-2xl flex items-center shadow-inner">

@@ -34,9 +34,7 @@ export default function Hero({ onScrollTo }: HeroProps) {
             без прихованих націнок!
           </h1>
           
-          <p className="text-slate-400 text-base sm:text-lg max-w-2xl leading-relaxed">
-            Професійна евакуація легкових автомобілів, позашляховиків, мотоциклів та спецтехніки. Працюємо чесно, дбайливо та цілодобово. Розрахуйте точну ціну онлайн за кілька секунд!
-          </p>
+
         </div>
 
         {/* Quick Stats Grid */}
