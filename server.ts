@@ -10,6 +10,7 @@ async function startServer() {
   const PORT = Number(process.env.PORT) || 3000;
 
   app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
 
   // In-memory orders database
   interface ServerOrder {
@@ -239,8 +240,158 @@ async function startServer() {
       return res.status(404).send(`Замовлення з ID ${id} не знайдено у списку активних`);
     }
 
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Підтвердження замовлення</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+        <style>
+          body { font-family: 'Inter', sans-serif; }
+        </style>
+      </head>
+      <body class="bg-slate-950 text-white min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+          <div class="absolute -top-10 -left-10 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl"></div>
+          
+          <div class="text-center mb-6">
+            <span class="inline-block bg-amber-500/10 text-amber-400 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-amber-500/20 mb-2">
+              Підтвердження виклику
+            </span>
+            <h1 class="text-xl font-black uppercase tracking-wider text-white">Замовлення ${order.orderNumber || `#${order.id.toString().toUpperCase()}`}</h1>
+            <p class="text-xs text-slate-400 mt-1">Перевірте деталі та підтвердіть відправку евакуатора</p>
+          </div>
+
+          <!-- Details card -->
+          <div class="bg-slate-950/60 rounded-2xl p-4.5 mb-6 border border-slate-800/80 text-left space-y-3 text-xs text-slate-300">
+            <div class="flex justify-between border-b border-slate-800/40 pb-2">
+              <span class="text-slate-500 font-semibold">Клієнт:</span>
+              <span class="font-bold text-white">${order.name}</span>
+            </div>
+            <div class="flex justify-between border-b border-slate-800/40 pb-2">
+              <span class="text-slate-500 font-semibold">Телефон:</span>
+              <a href="tel:${order.phone}" class="font-bold text-amber-400 hover:underline">${order.phone}</a>
+            </div>
+            <div class="flex justify-between border-b border-slate-800/40 pb-2">
+              <span class="text-slate-500 font-semibold">Місто:</span>
+              <span class="font-bold text-white">${order.city || "Не вказано"}</span>
+            </div>
+            <div class="flex justify-between border-b border-slate-800/40 pb-2">
+              <span class="text-slate-500 font-semibold">Автомобіль:</span>
+              <span class="font-bold text-white">${order.vehicleType}</span>
+            </div>
+            <div class="flex justify-between border-b border-slate-800/40 pb-2">
+              <span class="text-slate-500 font-semibold">Звідки:</span>
+              <span class="font-bold text-white text-right max-w-[200px] truncate" title="${order.fromLocation}">
+                ${order.fromLocation}
+              </span>
+            </div>
+            <div class="flex justify-between border-b border-slate-800/40 pb-2">
+              <span class="text-slate-500 font-semibold">Куди:</span>
+              <span class="font-bold text-white text-right max-w-[200px] truncate" title="${order.toLocation}">
+                ${order.toLocation}
+              </span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500 font-semibold">Ціна:</span>
+              <span class="font-bold text-emerald-400 text-sm">${order.estimatedPrice} грн</span>
+            </div>
+          </div>
+
+          <!-- Confirm Form -->
+          <form method="POST" action="/api/confirm-order?id=${order.id}" class="space-y-5">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Призначити водія (опціонально)</label>
+              <select 
+                name="driverId"
+                class="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3.5 py-3 text-xs focus:outline-none focus:border-amber-500/60 appearance-none cursor-pointer"
+              >
+                <option value="">-- Без призначення (вибрати пізніше) --</option>
+                ${driversDb.map(d => `
+                  <option value="${d.id}" ${order.driverId === d.id ? 'selected' : ''}>
+                    ${d.name} (${d.vehiclePlate}) — ${d.status === 'active' ? '🟢 Вільний' : d.status === 'busy' ? '🟡 На виклику' : '⚫ Офлайн'}
+                  </option>
+                `).join('')}
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3.5 rounded-xl text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-emerald-900/10"
+            >
+              🟢 ПІДТВЕРДИТИ ВИЇЗД
+            </button>
+          </form>
+        </div>
+      </body>
+      </html>
+    `);
+  });
+
+  // Action POST route for confirming/dispatching an order from confirmation page
+  app.post("/api/confirm-order", async (req, res) => {
+    const { id } = req.query;
+    const { driverId } = req.body;
+
+    const orderId = id as string;
+    if (!orderId) {
+      return res.status(400).send("Не вказано ID замовлення");
+    }
+
+    const order = ordersDb.find(o => o.id === orderId);
+    if (!order) {
+      return res.status(404).send(`Замовлення з ID ${orderId} не знайдено у списку активних`);
+    }
+
     order.status = 'dispatched';
     order.etaMinutes = 15; // Set a default ETA of 15 minutes when dispatched
+
+    if (driverId) {
+      const driver = driversDb.find(d => d.id === driverId);
+      if (driver) {
+        order.driverId = driver.id;
+        order.driverName = driver.name;
+        order.driverPhone = driver.phone;
+        order.driverPlate = driver.vehiclePlate;
+        driver.status = 'busy'; // Update driver status as busy
+      }
+    }
+
+    // Try to notify Telegram about dispatch & driver info
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+
+    if (botToken && chatId) {
+      try {
+        const message = `
+🟢 *ЗАМОВЛЕННЯ ПІДТВЕРДЖЕНО* 🟢
+
+🎫 *Замовлення:* ${order.orderNumber || `#${order.id}`}
+👤 *Клієнт:* ${order.name}
+📞 *Телефон:* ${order.phone}
+💰 *Вартість:* ${order.estimatedPrice} грн
+
+${order.driverName ? `🚚 *Призначений водій:* ${order.driverName}
+📱 *Телефон водія:* ${order.driverPhone}
+🔢 *Номер машини:* ${order.driverPlate}` : "⏳ *Водія буде призначено пізніше через адмін-панель*"}
+        `.trim();
+
+        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: message,
+            parse_mode: "Markdown"
+          }),
+        });
+      } catch (err) {
+        console.error("Failed to send confirm dispatch message to Telegram:", err);
+      }
+    }
 
     res.send(`
       <!DOCTYPE html>
@@ -267,7 +418,7 @@ async function startServer() {
 
           <h1 class="text-2xl font-black mb-2">Успішно підтверджено!</h1>
           <p class="text-slate-400 text-sm mb-6">
-            Замовлення <span class="text-amber-500 font-mono font-bold">#${id.toString().toUpperCase()}</span> переведено в статус "Евакуатор виїхав на допомогу".
+            Замовлення <span class="text-amber-500 font-mono font-bold">${order.orderNumber || `#${orderId.toUpperCase()}`}</span> переведено в статус "Евакуатор виїхав на допомогу".
           </p>
 
           <div class="bg-slate-950/60 rounded-2xl p-4 mb-6 border border-slate-800/50 text-left space-y-2 text-xs text-slate-300">
@@ -275,6 +426,7 @@ async function startServer() {
             <div>Телефон: <span class="font-bold text-white">${order.phone}</span></div>
             <div>Місто: <span class="font-bold text-white">${order.city || "Не вказано"}</span></div>
             <div>Авто: <span class="font-bold text-white">${order.vehicleType}</span></div>
+            ${order.driverName ? `<div>Водій: <span class="font-bold text-amber-400">${order.driverName} (${order.driverPlate})</span></div>` : ""}
           </div>
 
           <p class="text-xs text-slate-500">
@@ -298,12 +450,98 @@ async function startServer() {
       return res.status(404).send(`Замовлення з ID ${id} не знайдено у списку активних`);
     }
 
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Завершення виклику</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+        <style>
+          body { font-family: 'Inter', sans-serif; }
+        </style>
+      </head>
+      <body class="bg-slate-950 text-white min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+          <div class="absolute -top-10 -left-10 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl"></div>
+          
+          <div class="text-center mb-6">
+            <span class="inline-block bg-amber-500/10 text-amber-400 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-amber-500/20 mb-2">
+              Завершення виклику
+            </span>
+            <h1 class="text-xl font-black uppercase tracking-wider text-white">Замовлення ${order.orderNumber || `#${order.id.toString().toUpperCase()}`}</h1>
+            <p class="text-xs text-slate-400 mt-1">Підтвердіть, що евакуатор прибув на місце події</p>
+          </div>
+
+          <!-- Details card -->
+          <div class="bg-slate-950/60 rounded-2xl p-4.5 mb-6 border border-slate-800/80 text-left space-y-3 text-xs text-slate-300">
+            <div class="flex justify-between border-b border-slate-800/40 pb-2">
+              <span class="text-slate-500 font-semibold">Клієнт:</span>
+              <span class="font-bold text-white">${order.name}</span>
+            </div>
+            <div class="flex justify-between border-b border-slate-800/40 pb-2">
+              <span class="text-slate-500 font-semibold">Телефон:</span>
+              <span class="font-bold text-white">${order.phone}</span>
+            </div>
+            <div class="flex justify-between border-b border-slate-800/40 pb-2">
+              <span class="text-slate-500 font-semibold">Місто:</span>
+              <span class="font-bold text-white">${order.city || "Не вказано"}</span>
+            </div>
+            <div class="flex justify-between border-b border-slate-800/40 pb-2">
+              <span class="text-slate-500 font-semibold">Звідки:</span>
+              <span class="font-bold text-white truncate max-w-[200px]" title="${order.fromLocation}">${order.fromLocation}</span>
+            </div>
+            ${order.driverName ? `
+            <div class="flex justify-between">
+              <span class="text-slate-500 font-semibold">Водій:</span>
+              <span class="font-bold text-amber-400">${order.driverName}</span>
+            </div>
+            ` : ""}
+          </div>
+
+          <!-- Complete Form -->
+          <form method="POST" action="/api/complete-order?id=${order.id}">
+            <button
+              type="submit"
+              class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3.5 rounded-xl text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-amber-500/10"
+            >
+              🏁 ВОДІЙ ПРИБУВ НА МІСЦЕ
+            </button>
+          </form>
+        </div>
+      </body>
+      </html>
+    `);
+  });
+
+  // Action POST route for completing order
+  app.post("/api/complete-order", (req, res) => {
+    const { id } = req.query;
+    const orderId = id as string;
+    if (!orderId) {
+      return res.status(400).send("Не вказано ID замовлення");
+    }
+
+    const order = ordersDb.find(o => o.id === orderId);
+    if (!order) {
+      return res.status(404).send(`Замовлення з ID ${orderId} не знайдено у списку активних`);
+    }
+
     order.status = 'completed';
     order.etaMinutes = 0;
 
+    if (order.driverId) {
+      const driver = driversDb.find(d => d.id === order.driverId);
+      if (driver) {
+        driver.status = 'active'; // Mark driver as active/free again
+      }
+    }
+
     // Auto-remove completed orders after 2 minutes
     setTimeout(() => {
-      ordersDb = ordersDb.filter(o => o.id !== id);
+      ordersDb = ordersDb.filter(o => o.id !== orderId);
     }, 120000);
 
     res.send(`
@@ -332,7 +570,7 @@ async function startServer() {
 
           <h1 class="text-2xl font-black mb-2 text-amber-400">Водій прибув на місце!</h1>
           <p class="text-slate-400 text-sm mb-6">
-            Замовлення <span class="text-white font-mono font-bold">#${id.toString().toUpperCase()}</span> успішно оновлено. Статус: "Евакуатор прибув на місце події".
+            Замовлення <span class="text-white font-mono font-bold">${order.orderNumber || `#${orderId.toString().toUpperCase()}`}</span> успішно оновлено. Статус: "Евакуатор прибув на місце події".
           </p>
 
           <div class="bg-slate-950/60 rounded-2xl p-4 mb-6 border border-slate-800/50 text-left space-y-2 text-xs text-slate-300">
@@ -340,6 +578,7 @@ async function startServer() {
             <div>Телефон: <span class="font-bold text-white">${order.phone}</span></div>
             <div>Місто: <span class="font-bold text-white">${order.city || "Не вказано"}</span></div>
             <div>Адреса події: <span class="font-bold text-white">${order.fromLocation}</span></div>
+            ${order.driverName ? `<div>Водій: <span class="font-bold text-amber-400">${order.driverName}</span></div>` : ""}
           </div>
 
           <p class="text-xs text-slate-500">
