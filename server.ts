@@ -79,17 +79,25 @@ async function startServer() {
   });
 
   // Admin update order
-  app.post("/api/admin/update-order", (req, res) => {
+  app.post("/api/admin/update-order", async (req, res) => {
     const { id, status, etaMinutes } = req.body;
     const order = ordersDb.find(o => o.id === id);
     if (!order) {
       return res.status(404).json({ success: false, error: "Замовлення не знайдено" });
     }
     
+    const previousStatus = order.status;
+
     if (status) {
       order.status = status;
       if (status === 'completed') {
         order.etaMinutes = 0;
+        if (order.driverId) {
+          const driver = driversDb.find(d => d.id === order.driverId);
+          if (driver) {
+            driver.status = 'active'; // Mark driver as active/free again
+          }
+        }
         // Auto-remove completed orders after 2 minutes
         setTimeout(() => {
           ordersDb = ordersDb.filter(o => o.id !== id);
@@ -99,6 +107,69 @@ async function startServer() {
     
     if (typeof etaMinutes === 'number') {
       order.etaMinutes = etaMinutes;
+    }
+
+    // Notify Telegram about status changes from Admin Panel
+    if (status && status !== previousStatus) {
+      const botToken = process.env.TELEGRAM_BOT_TOKEN;
+      const chatId = process.env.TELEGRAM_CHAT_ID;
+      if (botToken && chatId) {
+        try {
+          let message = "";
+          if (status === 'searching') {
+            message = `
+🟢 *ЗАЯВКУ ПРИЙНЯТО* 🟢
+
+🎫 *Замовлення:* ${order.orderNumber || `#${order.id}`}
+👤 *Клієнт:* ${order.name}
+📞 *Телефон:* ${order.phone}
+💰 *Вартість:* ${order.estimatedPrice} грн
+
+⏳ *Диспетчер підтвердив заявку через панель керування. Зараз здійснюється підбір водія.*
+            `.trim();
+          } else if (status === 'dispatched') {
+            message = `
+🟢 *ЗАМОВЛЕННЯ ПІДТВЕРДЖЕНО (ВИЇЗД)* 🟢
+
+🎫 *Замовлення:* ${order.orderNumber || `#${order.id}`}
+👤 *Клієнт:* ${order.name}
+📞 *Телефон:* ${order.phone}
+💰 *Вартість:* ${order.estimatedPrice} грн
+
+${order.driverName ? `🚚 *Призначений водій:* ${order.driverName}
+📱 *Телефон водія:* ${order.driverPhone}
+🔢 *Номер машини:* ${order.driverPlate}` : "⏳ *Водія буде призначено пізніше*"}
+
+⏱ *Евакуатор виїхав на допомогу! Орієнтовний час прибуття: ${order.etaMinutes || 15} хв.*
+            `.trim();
+          } else if (status === 'completed') {
+            message = `
+🏁 *ЗАМОВЛЕННЯ ВИКОНАНО* 🏁
+
+🎫 *Замовлення:* ${order.orderNumber || `#${order.id}`}
+👤 *Клієнт:* ${order.name}
+📞 *Телефон:* ${order.phone}
+💰 *Вартість:* ${order.estimatedPrice} грн
+
+🎉 *Евакуатор успішно прибув на місце події та розпочав допомогу клієнту!*
+            `.trim();
+          }
+
+          if (message) {
+            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                chat_id: chatId,
+                text: message,
+                parse_mode: "Markdown"
+              }),
+            });
+          }
+        } catch (err) {
+          console.error("Failed to send status update to Telegram:", err);
+        }
+      }
     }
     
     res.json({ success: true, order, orders: ordersDb });
@@ -236,6 +307,237 @@ async function startServer() {
     res.json({ success: true, order, orders: ordersDb });
   });
 
+  // API route for accepting/confirming an order request from Telegram link
+  app.get("/api/accept-order", (req, res) => {
+    const { id } = req.query;
+    if (!id) {
+      return res.status(400).send("Не вказано ID замовлення");
+    }
+
+    const order = ordersDb.find(o => o.id === id);
+    if (!order) {
+      return res.status(404).send(`Замовлення з ID ${id} не знайдено у списку активних`);
+    }
+
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Прийняти заявку</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+        <style>
+          body { font-family: 'Inter', sans-serif; }
+        </style>
+      </head>
+      <body class="bg-slate-950 text-white min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+          <div class="absolute -top-10 -left-10 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl"></div>
+          
+          <div class="text-center mb-6">
+            <span class="inline-block bg-amber-500/10 text-amber-400 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-amber-500/20 mb-2">
+              Підтвердження заявки
+            </span>
+            <h1 class="text-xl font-black uppercase tracking-wider text-white">Замовлення ${order.orderNumber || `#${order.id.toString().toUpperCase()}`}</h1>
+            <p class="text-xs text-slate-400 mt-1">Підтвердіть прийом заявки та переведення у статус пошуку водія</p>
+          </div>
+
+          <!-- Details card -->
+          <div class="bg-slate-950/60 rounded-2xl p-4.5 mb-6 border border-slate-800/80 text-left space-y-3 text-xs text-slate-300">
+            <div class="flex justify-between border-b border-slate-800/40 pb-2">
+              <span class="text-slate-500 font-semibold">Клієнт:</span>
+              <span class="font-bold text-white">${order.name}</span>
+            </div>
+            <div class="flex justify-between border-b border-slate-800/40 pb-2">
+              <span class="text-slate-500 font-semibold">Телефон:</span>
+              <a href="tel:${order.phone}" class="font-bold text-amber-400 hover:underline">${order.phone}</a>
+            </div>
+            <div class="flex justify-between border-b border-slate-800/40 pb-2">
+              <span class="text-slate-500 font-semibold">Місто:</span>
+              <span class="font-bold text-white">${order.city || "Не вказано"}</span>
+            </div>
+            <div class="flex justify-between border-b border-slate-800/40 pb-2">
+              <span class="text-slate-500 font-semibold">Автомобіль:</span>
+              <span class="font-bold text-white">${order.vehicleType}</span>
+            </div>
+            <div class="flex justify-between border-b border-slate-800/40 pb-2">
+              <span class="text-slate-500 font-semibold">Звідки:</span>
+              <span class="font-bold text-white text-right max-w-[200px] truncate" title="${order.fromLocation}">
+                ${order.fromLocation}
+              </span>
+            </div>
+            <div class="flex justify-between border-b border-slate-800/40 pb-2">
+              <span class="text-slate-500 font-semibold">Куди:</span>
+              <span class="font-bold text-white text-right max-w-[200px] truncate" title="${order.toLocation}">
+                ${order.toLocation}
+              </span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500 font-semibold">Ціна:</span>
+              <span class="font-bold text-emerald-400 text-sm">${order.estimatedPrice} грн</span>
+            </div>
+          </div>
+
+          <!-- Confirm Form -->
+          <form method="POST" action="/api/accept-order?id=${order.id}">
+            <button
+              type="submit"
+              class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3.5 rounded-xl text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-amber-500/10"
+            >
+              🟢 ПРИЙНЯТИ ЗАЯВКУ
+            </button>
+          </form>
+        </div>
+      </body>
+      </html>
+    `);
+  });
+
+  // Action POST route for accepting order request
+  app.post("/api/accept-order", async (req, res) => {
+    const { id } = req.query;
+    const orderId = id as string;
+    if (!orderId) {
+      return res.status(400).send("Не вказано ID замовлення");
+    }
+
+    const order = ordersDb.find(o => o.id === orderId);
+    if (!order) {
+      return res.status(404).send(`Замовлення з ID ${orderId} не знайдено у списку активних`);
+    }
+
+    order.status = 'searching';
+    order.etaMinutes = undefined;
+
+    // Try to notify Telegram about request acceptance
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+
+    if (botToken && chatId) {
+      try {
+        let host = (req.headers['x-forwarded-host'] as string) || req.get('host') || "localhost:3000";
+        if (host.includes(',')) {
+          host = host.split(',')[0].trim();
+        }
+        const protocol = req.headers['x-forwarded-proto'] === 'https' || req.protocol === 'https' ? 'https' : 'http';
+        const confirmUrl = `${protocol}://${host}/api/confirm-order?id=${orderId}`;
+        const completeUrl = `${protocol}://${host}/api/complete-order?id=${orderId}`;
+
+        const isInvalidTelegramUrl = 
+          confirmUrl.includes('localhost') || 
+          confirmUrl.includes('127.0.0.1') || 
+          confirmUrl.includes('0.0.0.0') || 
+          confirmUrl.includes('::1');
+
+        const message = `
+🟢 *ЗАЯВКУ ПРИЙНЯТО* 🟢
+
+🎫 *Замовлення:* ${order.orderNumber || `#${order.id}`}
+👤 *Клієнт:* ${order.name}
+📞 *Телефон:* ${order.phone}
+💰 *Вартість:* ${order.estimatedPrice} грн
+
+⏳ *Диспетчер підтвердив заявку. Зараз здійснюється підбір водія та узгодження виїзду.*
+
+${isInvalidTelegramUrl ? `🔗 *Підтвердити виїзд:* ${confirmUrl}\n🏁 *Водій прибув:* ${completeUrl}` : `🔗 [Підтвердити виїзд евакуатора](${confirmUrl})\n🏁 [Водій прибув на місце події](${completeUrl})`}
+        `.trim();
+
+        const payload: any = {
+          chat_id: chatId,
+          text: message,
+          parse_mode: "Markdown",
+          disable_web_page_preview: true,
+          link_preview_options: {
+            is_disabled: true
+          }
+        };
+
+        if (!isInvalidTelegramUrl) {
+          payload.reply_markup = {
+            inline_keyboard: [
+              [
+                {
+                  "text": "🚚 ПІДТВЕРДИТИ ВИЇЗД",
+                  "url": confirmUrl
+                }
+              ],
+              [
+                {
+                  "text": "🏁 ВОДІЙ ПРИБУВ НА МІСЦЕ",
+                  "url": completeUrl
+                }
+              ]
+            ]
+          };
+        }
+
+        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      } catch (err) {
+        console.error("Failed to send accept message to Telegram:", err);
+      }
+    }
+
+    let host = (req.headers['x-forwarded-host'] as string) || req.get('host') || "localhost:3000";
+    if (host.includes(',')) {
+      host = host.split(',')[0].trim();
+    }
+    const protocol = req.headers['x-forwarded-proto'] === 'https' || req.protocol === 'https' ? 'https' : 'http';
+    const nextStepUrl = `${protocol}://${host}/api/confirm-order?id=${orderId}`;
+
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Заявку прийнято</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+        <style>
+          body { font-family: 'Inter', sans-serif; }
+        </style>
+      </head>
+      <body class="bg-slate-950 text-white min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-slate-900 border border-slate-800/80 rounded-3xl p-8 text-center shadow-2xl relative overflow-hidden">
+          <div class="absolute -top-10 -left-10 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl"></div>
+          
+          <div class="mx-auto w-16 h-16 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center justify-center mb-6">
+            <svg class="h-8 w-8 text-amber-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+            </svg>
+          </div>
+
+          <h1 class="text-2xl font-black mb-2">Заявку прийнято!</h1>
+          <p class="text-slate-400 text-sm mb-6">
+            Замовлення <span class="text-amber-500 font-mono font-bold">${order.orderNumber || `#${orderId.toUpperCase()}`}</span> переведено у статус пошуку вільного евакуатора.
+          </p>
+
+          <div class="bg-slate-950/60 rounded-2xl p-4 mb-6 border border-slate-800/50 text-left space-y-2 text-xs text-slate-300">
+            <div>Клієнт: <span class="font-bold text-white">${order.name}</span></div>
+            <div>Телефон: <span class="font-bold text-white">${order.phone}</span></div>
+            <div>Авто: <span class="font-bold text-white">${order.vehicleType}</span></div>
+          </div>
+
+          <div class="space-y-3">
+            <a 
+              href="${nextStepUrl}"
+              class="block w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3.5 rounded-xl text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-emerald-900/10"
+            >
+              🚚 ПІДТВЕРДИТИ ВИЇЗД ЕВАКУАТОРА
+            </a>
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+  });
+
   // API route for confirming/dispatching an order from Telegram link
   app.get("/api/confirm-order", (req, res) => {
     const { id } = req.query;
@@ -362,16 +664,10 @@ async function startServer() {
         order.driverPhone = driver.phone;
         order.driverPlate = driver.vehiclePlate;
         driver.status = 'busy'; // Update driver status as busy
-        order.status = 'dispatched';
-        order.etaMinutes = 15;
-      } else {
-        order.status = 'searching';
-        order.etaMinutes = undefined;
       }
-    } else {
-      order.status = 'searching';
-      order.etaMinutes = undefined;
     }
+    order.status = 'dispatched';
+    order.etaMinutes = 15;
 
     // Try to notify Telegram about dispatch & driver info
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
@@ -655,6 +951,7 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
         host = host.split(',')[0].trim();
       }
       const protocol = req.headers['x-forwarded-proto'] === 'https' || req.protocol === 'https' ? 'https' : 'http';
+      const acceptUrl = `${protocol}://${host}/api/accept-order?id=${orderId}`;
       const confirmUrl = `${protocol}://${host}/api/confirm-order?id=${orderId}`;
       const completeUrl = `${protocol}://${host}/api/complete-order?id=${orderId}`;
 
@@ -680,7 +977,7 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
 
 ${extrasText.length > 0 ? `🛠️ *Особливості:* \n${extrasText.map(e => ` - ${e}`).join('\n')}\n` : ''}💰 *Розрахункова ціна:* *${serverOrder.estimatedPrice || 0} грн*
 
-${isInvalidTelegramUrl ? `🔗 *Підтвердити виїзд:* ${confirmUrl}\n🏁 *Водій прибув:* ${completeUrl}` : `🔗 [Підтвердити виїзд евакуатора](${confirmUrl})\n🏁 [Водій прибув на місце події](${completeUrl})`}
+${isInvalidTelegramUrl ? `🔗 *Прийняти заявку:* ${acceptUrl}\n🔗 *Підтвердити виїзд:* ${confirmUrl}\n🏁 *Водій прибув:* ${completeUrl}` : `🔗 [Прийняти заявку](${acceptUrl})\n🔗 [Підтвердити виїзд евакуатора](${confirmUrl})\n🏁 [Водій прибув на місце події](${completeUrl})`}
       `.trim();
 
       const payload: any = {
@@ -698,7 +995,13 @@ ${isInvalidTelegramUrl ? `🔗 *Підтвердити виїзд:* ${confirmUrl
           inline_keyboard: [
             [
               {
-                "text": "🟢 ПІДТВЕРДИТИ ВИЇЗД",
+                "text": "🟢 ПРИЙНЯТИ ЗАЯВКУ",
+                "url": acceptUrl
+              }
+            ],
+            [
+              {
+                "text": "🚚 ПІДТВЕРДИТИ ВИЇЗД",
                 "url": confirmUrl
               }
             ],

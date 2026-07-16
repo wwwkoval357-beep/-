@@ -252,7 +252,7 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-500/15 text-amber-400 border border-amber-500/30">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
-            Пошук авто
+            Заявка прийнята / Пошук водія
           </span>
         );
       case 'dispatched':
@@ -820,20 +820,12 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
                       {/* Status controls */}
                       <div className="flex flex-wrap items-center gap-2">
                         {order.status === 'pending' && (
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleUpdateStatus(order.id, 'searching')}
-                              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl transition-all uppercase tracking-wider cursor-pointer shadow-md shadow-amber-500/5 active:scale-95"
-                            >
-                              ⚡ Почати пошук
-                            </button>
-                            <button
-                              onClick={() => handleUpdateStatus(order.id, 'dispatched', 15)}
-                              className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-sky-400 font-bold text-xs px-4 py-2.5 rounded-xl transition-all uppercase tracking-wider cursor-pointer active:scale-95"
-                            >
-                              🚀 Відправити зараз
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => handleUpdateStatus(order.id, 'searching')}
+                            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl transition-all uppercase tracking-wider cursor-pointer shadow-md shadow-amber-500/5 active:scale-95"
+                          >
+                            🟢 Прийняти заявку
+                          </button>
                         )}
 
                         {order.status === 'searching' && (
@@ -841,7 +833,7 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
                             onClick={() => handleUpdateStatus(order.id, 'dispatched', 15)}
                             className="bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl transition-all uppercase tracking-wider cursor-pointer shadow-md active:scale-95"
                           >
-                            🚚 Евакуатор виїхав
+                            🚚 Підтвердити виїзд
                           </button>
                         )}
 
@@ -851,7 +843,7 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
                               onClick={() => handleUpdateStatus(order.id, 'completed')}
                               className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl transition-all uppercase tracking-wider cursor-pointer active:scale-95 shadow-lg shadow-emerald-500/10"
                             >
-                              ✓ Евакуатор на місці
+                              🏁 Водій прибув на місце
                             </button>
                             
                             {editingEtaId === order.id ? (
