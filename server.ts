@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
+import fs from "fs";
 
 dotenv.config();
 
@@ -47,13 +48,49 @@ async function startServer() {
     vehicleType?: string;
   }
 
-  let ordersDb: ServerOrder[] = [];
-  let driversDb: ServerDriver[] = [
-    { id: "drv-1", name: "Іван Ковальчук", phone: "+380671112233", vehiclePlate: "BC 1234 HP", status: "active", city: "Львів", password: "123", vehicleType: "Легковий евакуатор" },
-    { id: "drv-2", name: "Олексій Шевченко", phone: "+380502223344", vehiclePlate: "AA 5678 KM", status: "active", city: "Київ", password: "123", vehicleType: "Евакуатор з маніпулятором" },
-    { id: "drv-3", name: "Дмитро Кравченко", phone: "+380933334455", vehiclePlate: "AE 9012 BC", status: "busy", city: "Дніпро", password: "123", vehicleType: "Вантажний евакуатор" },
-    { id: "drv-4", name: "Микола Кот", phone: "+380684445566", vehiclePlate: "BH 3456 OO", status: "active", city: "Одеса", password: "123", vehicleType: "Зі зсувною платформою" }
-  ];
+  const DRIVERS_FILE = path.join(process.cwd(), "drivers.json");
+  const ORDERS_FILE = path.join(process.cwd(), "orders.json");
+
+  function loadDrivers(): ServerDriver[] {
+    try {
+      if (fs.existsSync(DRIVERS_FILE)) {
+        return JSON.parse(fs.readFileSync(DRIVERS_FILE, "utf-8"));
+      }
+    } catch (err) {
+      console.error("Error loading drivers:", err);
+    }
+    return [];
+  }
+
+  function saveDrivers(drivers: ServerDriver[]) {
+    try {
+      fs.writeFileSync(DRIVERS_FILE, JSON.stringify(drivers, null, 2), "utf-8");
+    } catch (err) {
+      console.error("Error saving drivers:", err);
+    }
+  }
+
+  function loadOrders(): ServerOrder[] {
+    try {
+      if (fs.existsSync(ORDERS_FILE)) {
+        return JSON.parse(fs.readFileSync(ORDERS_FILE, "utf-8"));
+      }
+    } catch (err) {
+      console.error("Error loading orders:", err);
+    }
+    return [];
+  }
+
+  function saveOrders(orders: ServerOrder[]) {
+    try {
+      fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2), "utf-8");
+    } catch (err) {
+      console.error("Error saving orders:", err);
+    }
+  }
+
+  let ordersDb: ServerOrder[] = loadOrders();
+  let driversDb: ServerDriver[] = loadDrivers();
   let lastOrderNumber = 1000;
 
   // API route for getting all orders
@@ -66,6 +103,7 @@ async function startServer() {
     const { id } = req.body;
     if (id) {
       ordersDb = ordersDb.filter(o => o.id !== id);
+      saveOrders(ordersDb);
     }
     res.json({ success: true, orders: ordersDb });
   });
@@ -103,6 +141,7 @@ async function startServer() {
         // Auto-remove completed orders after 2 minutes
         setTimeout(() => {
           ordersDb = ordersDb.filter(o => o.id !== id);
+          saveOrders(ordersDb);
         }, 120000);
       }
     }
@@ -174,6 +213,8 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
       }
     }
     
+    saveOrders(ordersDb);
+    saveDrivers(driversDb);
     res.json({ success: true, order, orders: ordersDb });
   });
 
@@ -181,6 +222,7 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
   app.post("/api/admin/delete-order", (req, res) => {
     const { id } = req.body;
     ordersDb = ordersDb.filter(o => o.id !== id);
+    saveOrders(ordersDb);
     res.json({ success: true, orders: ordersDb });
   });
 
@@ -217,6 +259,7 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
       driversDb.push(newDriver);
     }
 
+    saveDrivers(driversDb);
     res.json({ success: true, drivers: driversDb });
   });
 
@@ -227,6 +270,7 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
       return res.status(400).json({ success: false, error: "Не вказано ID водія" });
     }
     driversDb = driversDb.filter(d => d.id !== id);
+    saveDrivers(driversDb);
     res.json({ success: true, drivers: driversDb });
   });
 
@@ -258,6 +302,7 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
     };
 
     driversDb.push(newDriver);
+    saveDrivers(driversDb);
     console.log(`Registered new driver: ${newDriver.name} (${newDriver.id})`);
     
     // Return driver without password for security
@@ -313,6 +358,8 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
     if (vehicleType !== undefined) currentDriver.vehicleType = vehicleType.trim();
     if (status) currentDriver.status = status;
     if (password) currentDriver.password = password;
+
+    saveDrivers(driversDb);
 
     const { password: _, ...driverResponse } = currentDriver;
     res.json({ success: true, driver: driverResponse });
@@ -512,6 +559,8 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
 
     order.status = 'searching';
     order.etaMinutes = undefined;
+
+    saveOrders(ordersDb);
 
     // Try to notify Telegram about request acceptance
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
@@ -771,6 +820,9 @@ ${isInvalidTelegramUrl ? `🔗 *Підтвердити виїзд:* ${confirmUrl
     order.status = 'dispatched';
     order.etaMinutes = 15;
 
+    saveOrders(ordersDb);
+    saveDrivers(driversDb);
+
     // Try to notify Telegram about dispatch & driver info
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -950,9 +1002,13 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
       }
     }
 
+    saveOrders(ordersDb);
+    saveDrivers(driversDb);
+
     // Auto-remove completed orders after 2 minutes
     setTimeout(() => {
       ordersDb = ordersDb.filter(o => o.id !== orderId);
+      saveOrders(ordersDb);
     }, 120000);
 
     res.send(`
@@ -1028,6 +1084,8 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
     } else {
       ordersDb.push(serverOrder);
     }
+
+    saveOrders(ordersDb);
 
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
