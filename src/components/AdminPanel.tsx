@@ -41,6 +41,7 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
   const [driverFormCity, setDriverFormCity] = useState('');
   const [driverFormStatus, setDriverFormStatus] = useState<'active' | 'busy' | 'offline'>('active');
   const [driverFormVehicleType, setDriverFormVehicleType] = useState('Легковий евакуатор');
+  const [driverFormPassword, setDriverFormPassword] = useState('123');
 
   const [assigningOrderId, setAssigningOrderId] = useState<string | null>(null);
 
@@ -152,6 +153,7 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
         city: driverFormCity,
         status: driverFormStatus,
         vehicleType: driverFormVehicleType,
+        password: driverFormPassword || '123',
       };
       if (editingDriver) {
         payload.id = editingDriver.id;
@@ -175,6 +177,7 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
         setDriverFormCity('');
         setDriverFormStatus('active');
         setDriverFormVehicleType('Легковий евакуатор');
+        setDriverFormPassword('123');
       } else {
         const errData = await response.json();
         alert(errData.error || 'Помилка при збереженні');
@@ -928,6 +931,7 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
                     setDriverFormCity('');
                     setDriverFormStatus('active');
                     setDriverFormVehicleType('Легковий евакуатор');
+                    setDriverFormPassword('123');
                     setIsDriverFormOpen(true);
                   }}
                   className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl transition-all uppercase tracking-wider cursor-pointer flex items-center gap-1.5"
@@ -993,6 +997,7 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
                             setDriverFormCity(driver.city || '');
                             setDriverFormStatus(driver.status);
                             setDriverFormVehicleType(driver.vehicleType || 'Легковий евакуатор');
+                            setDriverFormPassword(driver.password || '123');
                             setIsDriverFormOpen(true);
                           }}
                           className="flex-1 bg-slate-950 border border-slate-850 hover:border-slate-700 text-slate-400 hover:text-white py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
@@ -1083,6 +1088,18 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
                     placeholder="напр. Львів"
                     value={driverFormCity}
                     onChange={(e) => setDriverFormCity(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-850 text-white rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-amber-500/60"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Пароль для входу в кабінет *</label>
+                  <input 
+                    type="text" 
+                    required
+                    placeholder="напр. 123"
+                    value={driverFormPassword}
+                    onChange={(e) => setDriverFormPassword(e.target.value)}
                     className="w-full bg-slate-950 border border-slate-850 text-white rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-amber-500/60"
                   />
                 </div>

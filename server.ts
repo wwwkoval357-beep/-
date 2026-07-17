@@ -253,9 +253,11 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
       // Edit
       const index = driversDb.findIndex(d => d.id === driver.id);
       if (index !== -1) {
+        const existingPassword = driversDb[index].password;
         driversDb[index] = {
           ...driversDb[index],
-          ...driver
+          ...driver,
+          password: driver.password !== undefined ? driver.password : (existingPassword || "123")
         };
       } else {
         return res.status(404).json({ success: false, error: "Водія не знайдено" });
@@ -265,7 +267,8 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
       const newDriver: ServerDriver = {
         ...driver,
         id: `drv-${Math.random().toString(36).substring(2, 9)}`,
-        status: driver.status || 'active'
+        status: driver.status || 'active',
+        password: driver.password || '123'
       };
       driversDb.push(newDriver);
     }

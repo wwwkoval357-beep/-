@@ -48,6 +48,7 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
   const [editPlate, setEditPlate] = useState('');
   const [editVehicleType, setEditVehicleType] = useState('');
   const [editPassword, setEditPassword] = useState('');
+  const [changePasswordChecked, setChangePasswordChecked] = useState(false);
 
   // Assigned orders state
   const [assignedOrders, setAssignedOrders] = useState<TowOrder[]>([]);
@@ -231,7 +232,7 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
         vehicleType: editVehicleType,
       };
 
-      if (editPassword) {
+      if (changePasswordChecked && editPassword) {
         payload.password = editPassword;
       }
 
@@ -245,6 +246,8 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
       if (response.ok && data.success) {
         setDriver(data.driver);
         setIsEditing(false);
+        setEditPassword('');
+        setChangePasswordChecked(false);
         setSuccess('Профіль успішно оновлено!');
         if (onRefreshAllOrders) onRefreshAllOrders();
       } else {
@@ -757,15 +760,31 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
                         </select>
                       </div>
 
-                      <div className="space-y-1 sm:col-span-2">
-                        <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Новий пароль (залиште порожнім щоб не змінювати)</label>
-                        <input
-                          type="password"
-                          placeholder="••••••"
-                          value={editPassword}
-                          onChange={(e) => setEditPassword(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3.5 text-xs text-white focus:outline-none focus:border-amber-500 transition-colors placeholder:text-slate-700"
-                        />
+                      <div className="space-y-3 sm:col-span-2">
+                        <label className="flex items-center gap-2 text-slate-300 font-bold text-xs cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={changePasswordChecked}
+                            onChange={(e) => setChangePasswordChecked(e.target.checked)}
+                            className="w-4 h-4 rounded border-slate-850 bg-slate-950 text-amber-500 focus:ring-amber-500 cursor-pointer"
+                          />
+                          <span>Змінити пароль входу в кабінет</span>
+                        </label>
+
+                        {changePasswordChecked && (
+                          <div className="space-y-1 animate-fadeIn">
+                            <label className="text-[10px] text-amber-400 font-bold uppercase tracking-wider block">Новий пароль *</label>
+                            <input
+                              type="password"
+                              autoComplete="new-password"
+                              required
+                              placeholder="Введіть новий пароль"
+                              value={editPassword}
+                              onChange={(e) => setEditPassword(e.target.value)}
+                              className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3.5 text-xs text-white focus:outline-none focus:border-amber-500 transition-colors placeholder:text-slate-700"
+                            />
+                          </div>
+                        )}
                       </div>
 
                       <div className="sm:col-span-2 pt-2 flex items-center gap-3">
