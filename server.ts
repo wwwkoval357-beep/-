@@ -51,15 +51,31 @@ async function startServer() {
   const DRIVERS_FILE = path.join(process.cwd(), "drivers.json");
   const ORDERS_FILE = path.join(process.cwd(), "orders.json");
 
+  const DEFAULT_DRIVERS: ServerDriver[] = [
+    { id: "drv-1", name: "Іван Ковальчук", phone: "+380671112233", vehiclePlate: "BC 1234 HP", status: "active", city: "Львів", password: "123", vehicleType: "Легковий евакуатор" },
+    { id: "drv-2", name: "Олексій Шевченко", phone: "+380502223344", vehiclePlate: "AA 5678 KM", status: "active", city: "Київ", password: "123", vehicleType: "Евакуатор з маніпулятором" },
+    { id: "drv-3", name: "Дмитро Кравченко", phone: "+380933334455", vehiclePlate: "AE 9012 BC", status: "busy", city: "Дніпро", password: "123", vehicleType: "Вантажний евакуатор" },
+    { id: "drv-4", name: "Микола Кот", phone: "+380684445566", vehiclePlate: "BH 3456 OO", status: "active", city: "Одеса", password: "123", vehicleType: "Зі зсувною платформою" }
+  ];
+
+  function cleanPhone(phone: string): string {
+    if (!phone) return "";
+    const digits = phone.replace(/\D/g, "");
+    return digits.length >= 9 ? digits.slice(-9) : digits;
+  }
+
   function loadDrivers(): ServerDriver[] {
     try {
       if (fs.existsSync(DRIVERS_FILE)) {
         return JSON.parse(fs.readFileSync(DRIVERS_FILE, "utf-8"));
+      } else {
+        fs.writeFileSync(DRIVERS_FILE, JSON.stringify(DEFAULT_DRIVERS, null, 2), "utf-8");
+        return DEFAULT_DRIVERS;
       }
     } catch (err) {
       console.error("Error loading drivers:", err);
     }
-    return [];
+    return DEFAULT_DRIVERS;
   }
 
   function saveDrivers(drivers: ServerDriver[]) {
@@ -284,8 +300,8 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
       return res.status(400).json({ success: false, error: "Будь ласка, заповніть обов'язкові поля: ім'я, телефон, пароль та номер авто" });
     }
 
-    const normalizedPhone = phone.trim();
-    const existingDriver = driversDb.find(d => d.phone.trim() === normalizedPhone);
+    const cleanRegPhone = cleanPhone(phone);
+    const existingDriver = driversDb.find(d => cleanPhone(d.phone) === cleanRegPhone);
     if (existingDriver) {
       return res.status(400).json({ success: false, error: "Водій з таким номером телефону вже зареєстрований" });
     }
@@ -293,7 +309,7 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
     const newDriver: ServerDriver = {
       id: `drv-${Math.random().toString(36).substring(2, 9)}`,
       name: name.trim(),
-      phone: normalizedPhone,
+      phone: phone.trim(),
       password: password,
       city: city ? city.trim() : "",
       vehiclePlate: vehiclePlate.toUpperCase().trim(),
@@ -317,8 +333,8 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
       return res.status(400).json({ success: false, error: "Введіть номер телефону та пароль" });
     }
 
-    const normalizedPhone = phone.trim();
-    const driver = driversDb.find(d => d.phone.trim() === normalizedPhone);
+    const cleanLoginPhone = cleanPhone(phone);
+    const driver = driversDb.find(d => cleanPhone(d.phone) === cleanLoginPhone);
     
     if (!driver || driver.password !== password) {
       return res.status(401).json({ success: false, error: "Неправильний номер телефону або пароль" });
@@ -343,8 +359,9 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
     const currentDriver = driversDb[index];
 
     // Optional phone duplication check
-    if (phone && phone.trim() !== currentDriver.phone) {
-      const existing = driversDb.find(d => d.phone.trim() === phone.trim() && d.id !== id);
+    if (phone && cleanPhone(phone) !== cleanPhone(currentDriver.phone)) {
+      const cleanUpdatePhone = cleanPhone(phone);
+      const existing = driversDb.find(d => cleanPhone(d.phone) === cleanUpdatePhone && d.id !== id);
       if (existing) {
         return res.status(400).json({ success: false, error: "Цей номер телефону вже використовується іншим водієм" });
       }
