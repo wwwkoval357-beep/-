@@ -43,14 +43,16 @@ async function startServer() {
     vehiclePlate: string;
     status: 'active' | 'busy' | 'offline';
     city?: string;
+    password?: string;
+    vehicleType?: string;
   }
 
   let ordersDb: ServerOrder[] = [];
   let driversDb: ServerDriver[] = [
-    { id: "drv-1", name: "Іван Ковальчук", phone: "+380671112233", vehiclePlate: "BC 1234 HP", status: "active", city: "Львів" },
-    { id: "drv-2", name: "Олексій Шевченко", phone: "+380502223344", vehiclePlate: "AA 5678 KM", status: "active", city: "Київ" },
-    { id: "drv-3", name: "Дмитро Кравченко", phone: "+380933334455", vehiclePlate: "AE 9012 BC", status: "busy", city: "Дніпро" },
-    { id: "drv-4", name: "Микола Кот", phone: "+380684445566", vehiclePlate: "BH 3456 OO", status: "active", city: "Одеса" }
+    { id: "drv-1", name: "Іван Ковальчук", phone: "+380671112233", vehiclePlate: "BC 1234 HP", status: "active", city: "Львів", password: "123", vehicleType: "Легковий евакуатор" },
+    { id: "drv-2", name: "Олексій Шевченко", phone: "+380502223344", vehiclePlate: "AA 5678 KM", status: "active", city: "Київ", password: "123", vehicleType: "Евакуатор з маніпулятором" },
+    { id: "drv-3", name: "Дмитро Кравченко", phone: "+380933334455", vehiclePlate: "AE 9012 BC", status: "busy", city: "Дніпро", password: "123", vehicleType: "Вантажний евакуатор" },
+    { id: "drv-4", name: "Микола Кот", phone: "+380684445566", vehiclePlate: "BH 3456 OO", status: "active", city: "Одеса", password: "123", vehicleType: "Зі зсувною платформою" }
   ];
   let lastOrderNumber = 1000;
 
@@ -226,6 +228,106 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
     }
     driversDb = driversDb.filter(d => d.id !== id);
     res.json({ success: true, drivers: driversDb });
+  });
+
+  // DRIVER AUTH & PORTAL APIS
+  
+  // Driver Registration
+  app.post("/api/driver/register", (req, res) => {
+    const { name, phone, password, city, vehiclePlate, vehicleType } = req.body;
+    
+    if (!name || !phone || !password || !vehiclePlate) {
+      return res.status(400).json({ success: false, error: "Будь ласка, заповніть обов'язкові поля: ім'я, телефон, пароль та номер авто" });
+    }
+
+    const normalizedPhone = phone.trim();
+    const existingDriver = driversDb.find(d => d.phone.trim() === normalizedPhone);
+    if (existingDriver) {
+      return res.status(400).json({ success: false, error: "Водій з таким номером телефону вже зареєстрований" });
+    }
+
+    const newDriver: ServerDriver = {
+      id: `drv-${Math.random().toString(36).substring(2, 9)}`,
+      name: name.trim(),
+      phone: normalizedPhone,
+      password: password,
+      city: city ? city.trim() : "",
+      vehiclePlate: vehiclePlate.toUpperCase().trim(),
+      vehicleType: vehicleType ? vehicleType.trim() : "Евакуатор",
+      status: 'active'
+    };
+
+    driversDb.push(newDriver);
+    console.log(`Registered new driver: ${newDriver.name} (${newDriver.id})`);
+    
+    // Return driver without password for security
+    const { password: _, ...driverResponse } = newDriver;
+    res.json({ success: true, driver: driverResponse });
+  });
+
+  // Driver Login
+  app.post("/api/driver/login", (req, res) => {
+    const { phone, password } = req.body;
+    if (!phone || !password) {
+      return res.status(400).json({ success: false, error: "Введіть номер телефону та пароль" });
+    }
+
+    const normalizedPhone = phone.trim();
+    const driver = driversDb.find(d => d.phone.trim() === normalizedPhone);
+    
+    if (!driver || driver.password !== password) {
+      return res.status(401).json({ success: false, error: "Неправильний номер телефону або пароль" });
+    }
+
+    const { password: _, ...driverResponse } = driver;
+    res.json({ success: true, driver: driverResponse });
+  });
+
+  // Driver Update Profile & Status
+  app.post("/api/driver/update-profile", (req, res) => {
+    const { id, name, phone, city, vehiclePlate, vehicleType, status, password } = req.body;
+    if (!id) {
+      return res.status(400).json({ success: false, error: "Не вказано ID водія" });
+    }
+
+    const index = driversDb.findIndex(d => d.id === id);
+    if (index === -1) {
+      return res.status(404).json({ success: false, error: "Водія не знайдено" });
+    }
+
+    const currentDriver = driversDb[index];
+
+    // Optional phone duplication check
+    if (phone && phone.trim() !== currentDriver.phone) {
+      const existing = driversDb.find(d => d.phone.trim() === phone.trim() && d.id !== id);
+      if (existing) {
+        return res.status(400).json({ success: false, error: "Цей номер телефону вже використовується іншим водієм" });
+      }
+    }
+
+    // Update fields
+    if (name) currentDriver.name = name.trim();
+    if (phone) currentDriver.phone = phone.trim();
+    if (city !== undefined) currentDriver.city = city.trim();
+    if (vehiclePlate) currentDriver.vehiclePlate = vehiclePlate.toUpperCase().trim();
+    if (vehicleType !== undefined) currentDriver.vehicleType = vehicleType.trim();
+    if (status) currentDriver.status = status;
+    if (password) currentDriver.password = password;
+
+    const { password: _, ...driverResponse } = currentDriver;
+    res.json({ success: true, driver: driverResponse });
+  });
+
+  // Get active/assigned orders for a specific driver
+  app.get("/api/driver/orders", (req, res) => {
+    const { driverId } = req.query;
+    if (!driverId) {
+      return res.status(400).json({ success: false, error: "Не вказано ID водія" });
+    }
+
+    // Filter orders assigned to this driver and not auto-removed yet
+    const driverOrders = ordersDb.filter(o => o.driverId === driverId);
+    res.json({ success: true, orders: driverOrders });
   });
 
   // Assign driver to order

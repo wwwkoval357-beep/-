@@ -28,6 +28,8 @@ export interface Driver {
   vehiclePlate: string;
   status: 'active' | 'busy' | 'offline';
   city?: string;
+  password?: string;
+  vehicleType?: string;
 }
 
 export interface ServiceItem {

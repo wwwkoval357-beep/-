@@ -5,9 +5,10 @@ interface FooterProps {
   onScrollTo: (elementId: string) => void;
   onCallClick: () => void;
   onAdminClick?: () => void;
+  onDriverClick: () => void;
 }
 
-export default function Footer({ onScrollTo, onCallClick, onAdminClick }: FooterProps) {
+export default function Footer({ onScrollTo, onCallClick, onAdminClick, onDriverClick }: FooterProps) {
   return (
     <footer className="bg-slate-900 text-white border-t border-slate-800 pt-16 pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -54,8 +55,13 @@ export default function Footer({ onScrollTo, onCallClick, onAdminClick }: Footer
                   Часті запитання
                 </button>
               </li>
+              <li className="pt-1.5 border-t border-slate-800">
+                <button onClick={onDriverClick} className="text-amber-500 hover:text-amber-400 font-bold transition-colors cursor-pointer flex items-center gap-1.5">
+                  🚚 Вхід для водіїв
+                </button>
+              </li>
               {onAdminClick && (
-                <li className="pt-1.5 border-t border-slate-800">
+                <li>
                   <button onClick={onAdminClick} className="text-slate-500 hover:text-amber-500 font-bold transition-colors cursor-pointer flex items-center gap-1.5">
                     🔒 Панель адміна
                   </button>

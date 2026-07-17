@@ -1,14 +1,15 @@
 import React from 'react';
-import { Phone, Navigation, Shield } from 'lucide-react';
+import { Phone, Navigation, Shield, Truck } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface HeaderProps {
   onScrollTo: (elementId: string) => void;
   onCallClick: () => void;
   onAdminClick?: () => void;
+  onDriverClick: () => void;
 }
 
-export default function Header({ onScrollTo, onCallClick, onAdminClick }: HeaderProps) {
+export default function Header({ onScrollTo, onCallClick, onAdminClick, onDriverClick }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full bg-slate-900/95 backdrop-blur-md border-b border-slate-800 text-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
@@ -65,6 +66,16 @@ export default function Header({ onScrollTo, onCallClick, onAdminClick }: Header
 
         {/* Action Button & Dispatch Status */}
         <div className="flex items-center space-x-3">
+          <button
+            onClick={onDriverClick}
+            className="flex items-center gap-2 px-3 py-2.5 sm:px-4 sm:py-3 bg-slate-800 hover:bg-slate-700 hover:text-amber-400 border border-slate-700 hover:border-amber-500/30 rounded-xl transition-all cursor-pointer text-xs font-black uppercase tracking-wider text-slate-300"
+            title="Кабінет водія евакуатора"
+            id="driver-btn-header"
+          >
+            <Truck className="h-4 w-4 text-amber-500" />
+            <span className="hidden sm:inline">Кабінет водія</span>
+          </button>
+
           {onAdminClick && (
             <button
               onClick={onAdminClick}

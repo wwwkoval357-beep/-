@@ -13,6 +13,7 @@ import ActiveOrders from './components/ActiveOrders';
 import FAQ from './components/FAQ';
 import Footer from './components/Footer';
 import AdminPanel from './components/AdminPanel';
+import DriverPortal from './components/DriverPortal';
 import { TowOrder } from './types';
 import { motion, AnimatePresence } from 'motion/react';
 import { CheckCircle2, AlertTriangle, X, Send, Phone, Clock, Truck, Copy } from 'lucide-react';
@@ -20,6 +21,7 @@ import { CheckCircle2, AlertTriangle, X, Send, Phone, Clock, Truck, Copy } from 
 export default function App() {
   const [orders, setOrders] = useState<TowOrder[]>([]);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isDriverPortalOpen, setIsDriverPortalOpen] = useState(false);
   const [showAdminButton, setShowAdminButton] = useState<boolean>(() => {
     try {
       return localStorage.getItem('show_admin_button') === 'true' || localStorage.getItem('is_admin_logged') === 'true';
@@ -469,11 +471,21 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {isDriverPortalOpen && (
+          <DriverPortal
+            onClose={() => setIsDriverPortalOpen(false)}
+            onRefreshAllOrders={triggerRefreshOrders}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <Header 
         onScrollTo={handleScrollTo} 
         onCallClick={() => setIsPhoneModalOpen(true)} 
         onAdminClick={showAdminButton ? () => setIsAdminOpen(true) : undefined} 
+        onDriverClick={() => setIsDriverPortalOpen(true)}
       />
 
       {/* Main content flow */}
@@ -506,6 +518,7 @@ export default function App() {
         onScrollTo={handleScrollTo} 
         onCallClick={() => setIsPhoneModalOpen(true)} 
         onAdminClick={showAdminButton ? () => setIsAdminOpen(true) : undefined} 
+        onDriverClick={() => setIsDriverPortalOpen(true)}
       />
     </div>
   );
