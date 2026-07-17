@@ -484,7 +484,7 @@ export default function App() {
       <Header 
         onScrollTo={handleScrollTo} 
         onCallClick={() => setIsPhoneModalOpen(true)} 
-        onAdminClick={() => setIsAdminOpen(true)} 
+        onAdminClick={showAdminButton ? () => setIsAdminOpen(true) : undefined} 
         onDriverClick={() => setIsDriverPortalOpen(true)}
       />
 
@@ -517,7 +517,7 @@ export default function App() {
       <Footer 
         onScrollTo={handleScrollTo} 
         onCallClick={() => setIsPhoneModalOpen(true)} 
-        onAdminClick={() => setIsAdminOpen(true)} 
+        onAdminClick={showAdminButton ? () => setIsAdminOpen(true) : undefined} 
         onDriverClick={() => setIsDriverPortalOpen(true)}
       />
     </div>
