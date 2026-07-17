@@ -318,22 +318,14 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
+    <div className="fixed inset-0 z-50 bg-slate-950 flex flex-col overflow-hidden">
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="absolute inset-0 bg-slate-950/85 backdrop-blur-md cursor-pointer"
-      />
-
-      {/* Main Container */}
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.95, opacity: 0, y: 20 }}
-        className="relative w-full max-w-2xl bg-slate-900 border border-slate-800/80 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.98 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+        className="w-full h-full bg-slate-950 flex flex-col relative"
+        id="driver-portal-panel"
       >
         {/* Header decoration blur */}
         <div className="absolute top-0 left-1/4 w-40 h-40 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
@@ -389,7 +381,7 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
 
           {/* AUTHENTICATION SCREEN */}
           {!driver ? (
-            <div className="space-y-6">
+            <div className="max-w-md mx-auto w-full bg-slate-900 border border-slate-800/80 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl my-4 sm:my-8">
               {/* Tab Selector */}
               <div className="flex bg-slate-950 p-1.5 rounded-2xl border border-slate-850">
                 <button

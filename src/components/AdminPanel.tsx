@@ -373,7 +373,7 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto w-full h-full flex flex-col overflow-hidden border-x border-slate-900/60 shadow-2xl">
+        <div className="w-full h-full flex flex-col overflow-hidden shadow-2xl">
 
         {/* Dashboard Header */}
         <div className="px-6 py-4.5 border-b border-slate-850/80 flex items-center justify-between bg-slate-900/90 backdrop-blur-md sticky top-0 z-20 shrink-0">
