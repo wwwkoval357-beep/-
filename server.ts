@@ -51,12 +51,7 @@ async function startServer() {
   const DRIVERS_FILE = path.join(process.cwd(), "drivers.json");
   const ORDERS_FILE = path.join(process.cwd(), "orders.json");
 
-  const DEFAULT_DRIVERS: ServerDriver[] = [
-    { id: "drv-1", name: "Іван Ковальчук", phone: "+380671112233", vehiclePlate: "BC 1234 HP", status: "active", city: "Львів", password: "123", vehicleType: "Легковий евакуатор" },
-    { id: "drv-2", name: "Олексій Шевченко", phone: "+380502223344", vehiclePlate: "AA 5678 KM", status: "active", city: "Київ", password: "123", vehicleType: "Евакуатор з маніпулятором" },
-    { id: "drv-3", name: "Дмитро Кравченко", phone: "+380933334455", vehiclePlate: "AE 9012 BC", status: "busy", city: "Дніпро", password: "123", vehicleType: "Вантажний евакуатор" },
-    { id: "drv-4", name: "Микола Кот", phone: "+380684445566", vehiclePlate: "BH 3456 OO", status: "active", city: "Одеса", password: "123", vehicleType: "Зі зсувною платформою" }
-  ];
+  const DEFAULT_DRIVERS: ServerDriver[] = [];
 
   function cleanPhone(phone: string): string {
     if (!phone) return "";
@@ -75,7 +70,7 @@ async function startServer() {
     } catch (err) {
       console.error("Error loading drivers:", err);
     }
-    return DEFAULT_DRIVERS;
+    return [];
   }
 
   function saveDrivers(drivers: ServerDriver[]) {
@@ -300,17 +295,23 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
       return res.status(400).json({ success: false, error: "Будь ласка, заповніть обов'язкові поля: ім'я, телефон, пароль та номер авто" });
     }
 
-    const cleanRegPhone = cleanPhone(phone);
+    const normalizedPhone = String(phone).trim();
+    const normalizedPassword = String(password).trim();
+    const cleanRegPhone = cleanPhone(normalizedPhone);
+    
+    console.log(`[REGISTER] Phone: "${phone}", Clean: "${cleanRegPhone}", Password length: ${normalizedPassword.length}`);
+
     const existingDriver = driversDb.find(d => cleanPhone(d.phone) === cleanRegPhone);
     if (existingDriver) {
+      console.log(`[REGISTER] Conflict: driver with clean phone "${cleanRegPhone}" already exists`);
       return res.status(400).json({ success: false, error: "Водій з таким номером телефону вже зареєстрований" });
     }
 
     const newDriver: ServerDriver = {
       id: `drv-${Math.random().toString(36).substring(2, 9)}`,
       name: name.trim(),
-      phone: phone.trim(),
-      password: password,
+      phone: normalizedPhone,
+      password: normalizedPassword,
       city: city ? city.trim() : "",
       vehiclePlate: vehiclePlate.toUpperCase().trim(),
       vehicleType: vehicleType ? vehicleType.trim() : "Евакуатор",
@@ -319,7 +320,7 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
 
     driversDb.push(newDriver);
     saveDrivers(driversDb);
-    console.log(`Registered new driver: ${newDriver.name} (${newDriver.id})`);
+    console.log(`[REGISTER] Registered driver: ${newDriver.name} (${newDriver.id}), phone: ${newDriver.phone}`);
     
     // Return driver without password for security
     const { password: _, ...driverResponse } = newDriver;
@@ -333,12 +334,25 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
       return res.status(400).json({ success: false, error: "Введіть номер телефону та пароль" });
     }
 
-    const cleanLoginPhone = cleanPhone(phone);
+    const normalizedPhone = String(phone).trim();
+    const normalizedPassword = String(password).trim();
+    const cleanLoginPhone = cleanPhone(normalizedPhone);
+    
+    console.log(`[LOGIN] Attempt - Phone: "${phone}", Clean: "${cleanLoginPhone}", Password length: ${normalizedPassword.length}`);
+
     const driver = driversDb.find(d => cleanPhone(d.phone) === cleanLoginPhone);
     
-    if (!driver || driver.password !== password) {
+    if (!driver) {
+      console.log(`[LOGIN] Driver with phone "${cleanLoginPhone}" NOT found in list:`, driversDb.map(d => cleanPhone(d.phone)));
       return res.status(401).json({ success: false, error: "Неправильний номер телефону або пароль" });
     }
+
+    if (driver.password !== normalizedPassword) {
+      console.log(`[LOGIN] Password mismatch for ${driver.name}. Expected length: ${driver.password?.length}, Got length: ${normalizedPassword.length}`);
+      return res.status(401).json({ success: false, error: "Неправильний номер телефону або пароль" });
+    }
+
+    console.log(`[LOGIN] Success for driver: ${driver.name} (${driver.id})`);
 
     const { password: _, ...driverResponse } = driver;
     res.json({ success: true, driver: driverResponse });
