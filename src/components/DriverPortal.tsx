@@ -58,19 +58,23 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
   useEffect(() => {
     if (driver) {
       localStorage.setItem('logged_driver', JSON.stringify(driver));
-      // Initialize edit fields
+    } else {
+      localStorage.removeItem('logged_driver');
+      setAssignedOrders([]);
+    }
+  }, [driver]);
+
+  // Initialize edit fields when driver changes or when we are not editing
+  useEffect(() => {
+    if (driver && !isEditing) {
       setEditName(driver.name);
       setEditPhone(driver.phone);
       setEditCity(driver.city || '');
       setEditPlate(driver.vehiclePlate);
       setEditVehicleType(driver.vehicleType || 'Легковий евакуатор');
       setEditPassword('');
-      fetchAssignedOrders(driver.id);
-    } else {
-      localStorage.removeItem('logged_driver');
-      setAssignedOrders([]);
     }
-  }, [driver]);
+  }, [driver, isEditing]);
 
   // Fetch orders assigned to driver
   const fetchAssignedOrders = async (driverId: string) => {
@@ -81,6 +85,7 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
       if (!localStorage.getItem('logged_driver')) return;
       if (response.ok) {
         const data = await response.json();
+        if (!localStorage.getItem('logged_driver')) return;
         if (data.success) {
           setAssignedOrders(data.orders);
         }
@@ -142,6 +147,7 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
       if (!localStorage.getItem('logged_driver')) return;
       if (response.ok) {
         const data = await response.json();
+        if (!localStorage.getItem('logged_driver')) return;
         if (data.success && data.driver) {
           setDriver(data.driver);
           updateDriverBackup(data.driver);
@@ -181,6 +187,7 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
 
           if (syncResponse.ok) {
             const syncData = await syncResponse.json();
+            if (!localStorage.getItem('logged_driver')) return;
             if (syncData.success) {
               setDriver(syncData.driver);
               console.log('Driver successfully re-synced with server on 404');
@@ -190,8 +197,10 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
         }
 
         // If sync fails and can't be restored, clear local session
-        setDriver(null);
-        localStorage.removeItem('logged_driver');
+        if (localStorage.getItem('logged_driver')) {
+          setDriver(null);
+          localStorage.removeItem('logged_driver');
+        }
       }
     } catch (err) {
       console.error('Failed to fetch driver profile:', err);
@@ -200,18 +209,19 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
 
   // Poll assigned orders and profile status when portal is open
   useEffect(() => {
-    if (!driver) return;
+    const driverId = driver?.id;
+    if (!driverId) return;
     
     // Initial fetch of profile on mount/login
-    fetchDriverProfile(driver.id);
+    fetchDriverProfile(driverId);
     
     const interval = setInterval(() => {
-      fetchAssignedOrders(driver.id);
-      fetchDriverProfile(driver.id);
+      fetchAssignedOrders(driverId);
+      fetchDriverProfile(driverId);
     }, 2500);
 
     return () => clearInterval(interval);
-  }, [driver]);
+  }, [driver?.id]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
