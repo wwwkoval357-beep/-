@@ -40,6 +40,7 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
   const [driverFormPlate, setDriverFormPlate] = useState('');
   const [driverFormCity, setDriverFormCity] = useState('');
   const [driverFormStatus, setDriverFormStatus] = useState<'active' | 'busy' | 'offline'>('active');
+  const [driverFormVehicleType, setDriverFormVehicleType] = useState('Легковий евакуатор');
 
   const [assigningOrderId, setAssigningOrderId] = useState<string | null>(null);
 
@@ -61,11 +62,12 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
     }
   }, [isAuthenticated]);
 
-  // Auto-refresh orders every 7 seconds for live updates
+  // Auto-refresh orders and drivers every 7 seconds for live updates
   useEffect(() => {
     if (!isAuthenticated) return;
     const interval = setInterval(async () => {
       await onRefreshOrders();
+      await fetchDrivers();
     }, 7000);
     return () => clearInterval(interval);
   }, [isAuthenticated, onRefreshOrders]);
@@ -148,6 +150,7 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
         vehiclePlate: driverFormPlate,
         city: driverFormCity,
         status: driverFormStatus,
+        vehicleType: driverFormVehicleType,
       };
       if (editingDriver) {
         payload.id = editingDriver.id;
@@ -170,6 +173,7 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
         setDriverFormPlate('');
         setDriverFormCity('');
         setDriverFormStatus('active');
+        setDriverFormVehicleType('Легковий евакуатор');
       } else {
         const errData = await response.json();
         alert(errData.error || 'Помилка при збереженні');
@@ -922,6 +926,7 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
                     setDriverFormPlate('');
                     setDriverFormCity('');
                     setDriverFormStatus('active');
+                    setDriverFormVehicleType('Легковий евакуатор');
                     setIsDriverFormOpen(true);
                   }}
                   className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl transition-all uppercase tracking-wider cursor-pointer flex items-center gap-1.5"
@@ -945,7 +950,9 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
                         <div className="flex justify-between items-start mb-3">
                           <div>
                             <h4 className="text-sm font-black text-white">{driver.name}</h4>
-                            <p className="text-[10px] text-slate-400 mt-0.5 uppercase font-mono tracking-wider">{driver.vehiclePlate}</p>
+                            <p className="text-[10px] text-amber-400 mt-0.5 uppercase font-mono tracking-wider font-bold">
+                              {driver.vehiclePlate}
+                            </p>
                           </div>
                           <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
                             driver.status === 'active' 
@@ -964,6 +971,10 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
                             <a href={`tel:${driver.phone}`} className="font-bold text-amber-400 hover:underline">{driver.phone}</a>
                           </div>
                           <div className="flex justify-between">
+                            <span className="text-slate-500 font-medium">Тип евакуатора:</span>
+                            <span className="font-bold text-slate-200">{driver.vehicleType || 'Легковий евакуатор'}</span>
+                          </div>
+                          <div className="flex justify-between">
                             <span className="text-slate-500 font-medium">Область/Місто:</span>
                             <span className="font-bold text-slate-200">{driver.city || 'Вся Україна'}</span>
                           </div>
@@ -980,6 +991,7 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
                             setDriverFormPlate(driver.vehiclePlate);
                             setDriverFormCity(driver.city || '');
                             setDriverFormStatus(driver.status);
+                            setDriverFormVehicleType(driver.vehicleType || 'Легковий евакуатор');
                             setIsDriverFormOpen(true);
                           }}
                           className="flex-1 bg-slate-950 border border-slate-850 hover:border-slate-700 text-slate-400 hover:text-white py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
@@ -1046,6 +1058,21 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
                     onChange={(e) => setDriverFormPlate(e.target.value)}
                     className="w-full bg-slate-950 border border-slate-850 text-white rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-amber-500/60"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Тип / Характеристики евакуатора *</label>
+                  <select 
+                    value={driverFormVehicleType}
+                    onChange={(e) => setDriverFormVehicleType(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-850 text-white rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-amber-500/60"
+                  >
+                    <option value="Легковий евакуатор">Легковий евакуатор (до 3 тонн)</option>
+                    <option value="Евакуатор з маніпулятором">Евакуатор з краном-маніпулятором</option>
+                    <option value="Вантажний евакуатор">Вантажний евакуатор (важка техніка)</option>
+                    <option value="Зі зсувною платформою">Евакуатор зі зсувною платформою</option>
+                    <option value="Двох'ярусний евакуатор">Двох'ярусний евакуатор</option>
+                  </select>
                 </div>
 
                 <div>
