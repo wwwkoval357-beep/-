@@ -396,6 +396,20 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
     res.json({ success: true, driver: driverResponse });
   });
 
+  // Get driver profile status/details
+  app.get("/api/driver/profile", (req, res) => {
+    const { id } = req.query;
+    if (!id) {
+      return res.status(400).json({ success: false, error: "Не вказано ID водія" });
+    }
+    const driver = driversDb.find(d => d.id === id);
+    if (!driver) {
+      return res.status(404).json({ success: false, error: "Водія не знайдено" });
+    }
+    const { password: _, ...driverResponse } = driver;
+    res.json({ success: true, driver: driverResponse });
+  });
+
   // Get active/assigned orders for a specific driver
   app.get("/api/driver/orders", (req, res) => {
     const { driverId } = req.query;

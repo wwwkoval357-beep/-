@@ -89,13 +89,32 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
     }
   };
 
-  // Poll assigned orders when portal is open
+  // Fetch latest driver profile details
+  const fetchDriverProfile = async (driverId: string) => {
+    try {
+      const response = await fetch(`/api/driver/profile?id=${driverId}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.driver) {
+          setDriver(data.driver);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch driver profile:', err);
+    }
+  };
+
+  // Poll assigned orders and profile status when portal is open
   useEffect(() => {
     if (!driver) return;
     
+    // Initial fetch of profile on mount/login
+    fetchDriverProfile(driver.id);
+    
     const interval = setInterval(() => {
       fetchAssignedOrders(driver.id);
-    }, 5000);
+      fetchDriverProfile(driver.id);
+    }, 2500);
 
     return () => clearInterval(interval);
   }, [driver]);

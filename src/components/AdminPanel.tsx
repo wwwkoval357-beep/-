@@ -62,13 +62,13 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
     }
   }, [isAuthenticated]);
 
-  // Auto-refresh orders and drivers every 7 seconds for live updates
+  // Auto-refresh orders and drivers every 2 seconds for live updates
   useEffect(() => {
     if (!isAuthenticated) return;
     const interval = setInterval(async () => {
       await onRefreshOrders();
       await fetchDrivers();
-    }, 7000);
+    }, 2000);
     return () => clearInterval(interval);
   }, [isAuthenticated, onRefreshOrders]);
 
