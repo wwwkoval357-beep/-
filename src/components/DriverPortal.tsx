@@ -74,9 +74,11 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
 
   // Fetch orders assigned to driver
   const fetchAssignedOrders = async (driverId: string) => {
+    if (!localStorage.getItem('logged_driver')) return;
     setLoadingOrders(true);
     try {
       const response = await fetch(`/api/driver/orders?driverId=${driverId}`);
+      if (!localStorage.getItem('logged_driver')) return;
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -134,8 +136,10 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
 
   // Fetch latest driver profile details
   const fetchDriverProfile = async (driverId: string) => {
+    if (!localStorage.getItem('logged_driver')) return;
     try {
       const response = await fetch(`/api/driver/profile?id=${driverId}`);
+      if (!localStorage.getItem('logged_driver')) return;
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.driver) {
@@ -172,6 +176,8 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
               password: savedPassword
             })
           });
+
+          if (!localStorage.getItem('logged_driver')) return;
 
           if (syncResponse.ok) {
             const syncData = await syncResponse.json();
@@ -414,8 +420,8 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
   };
 
   const handleLogout = () => {
-    setDriver(null);
     localStorage.removeItem('logged_driver');
+    setDriver(null);
     setIsEditing(false);
     setSuccess('Ви вийшли з кабінету');
   };
