@@ -361,6 +361,48 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
     res.json({ success: true, driver: driverResponse });
   });
 
+  // Driver Sync (Restoration after server restart)
+  app.post("/api/driver/sync", (req, res) => {
+    const { id, name, phone, city, vehiclePlate, vehicleType, status, password } = req.body;
+    
+    if (!id || !name || !phone || !vehiclePlate) {
+      return res.status(400).json({ success: false, error: "Missing required fields for sync" });
+    }
+
+    const cleanSyncPhone = cleanPhone(phone);
+    let driver = driversDb.find(d => d.id === id || cleanPhone(d.phone) === cleanSyncPhone);
+
+    if (driver) {
+      // Update existing
+      driver.name = name.trim();
+      driver.phone = phone.trim();
+      if (city !== undefined) driver.city = city.trim();
+      driver.vehiclePlate = vehiclePlate.toUpperCase().trim();
+      if (vehicleType !== undefined) driver.vehicleType = vehicleType.trim();
+      if (status) driver.status = status;
+      if (password) driver.password = password;
+    } else {
+      // Re-create
+      driver = {
+        id,
+        name: name.trim(),
+        phone: phone.trim(),
+        password: password || '123',
+        city: city ? city.trim() : "",
+        vehiclePlate: vehiclePlate.toUpperCase().trim(),
+        vehicleType: vehicleType ? vehicleType.trim() : "Легковий евакуатор",
+        status: status || 'active'
+      };
+      driversDb.push(driver);
+    }
+
+    saveDrivers(driversDb);
+    console.log(`[SYNC] Driver synced/restored: ${driver.name} (${driver.id})`);
+
+    const { password: _, ...driverResponse } = driver;
+    res.json({ success: true, driver: driverResponse });
+  });
+
   // Driver Update Profile & Status
   app.post("/api/driver/update-profile", (req, res) => {
     const { id, name, phone, city, vehiclePlate, vehicleType, status, password } = req.body;

@@ -90,6 +90,48 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
     }
   };
 
+  // Backup driver locally to survive server restarts
+  const updateDriverBackup = (drv: Driver, pass?: string) => {
+    try {
+      const backupList = localStorage.getItem('registered_drivers_backup');
+      let backups = backupList ? JSON.parse(backupList) : [];
+      const index = backups.findIndex((b: any) => b.id === drv.id);
+      if (index !== -1) {
+        backups[index] = {
+          ...backups[index],
+          name: drv.name,
+          phone: drv.phone,
+          city: drv.city || '',
+          vehiclePlate: drv.vehiclePlate,
+          vehicleType: drv.vehicleType || 'Легковий евакуатор',
+          status: drv.status || 'active',
+          ...(pass ? { password: pass } : {})
+        };
+      } else {
+        backups.push({
+          id: drv.id,
+          name: drv.name,
+          phone: drv.phone,
+          city: drv.city || '',
+          vehiclePlate: drv.vehiclePlate,
+          vehicleType: drv.vehicleType || 'Легковий евакуатор',
+          status: drv.status || 'active',
+          password: pass || '123'
+        });
+      }
+      localStorage.setItem('registered_drivers_backup', JSON.stringify(backups));
+    } catch (e) {
+      console.error('Failed to update driver backup:', e);
+    }
+  };
+
+  // Helper helper to clean Ukrainian phone numbers for local matching
+  const cleanPhoneLocal = (p: string): string => {
+    if (!p) return "";
+    const digits = p.replace(/\D/g, "");
+    return digits.length >= 9 ? digits.slice(-9) : digits;
+  };
+
   // Fetch latest driver profile details
   const fetchDriverProfile = async (driverId: string) => {
     try {
@@ -98,7 +140,52 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
         const data = await response.json();
         if (data.success && data.driver) {
           setDriver(data.driver);
+          updateDriverBackup(data.driver);
         }
+      } else if (response.status === 404) {
+        // Driver not found on the server (server restarted/wiped)
+        // Let's attempt to restore them silently from local backup!
+        const stored = localStorage.getItem('logged_driver');
+        if (stored) {
+          const localDriver = JSON.parse(stored);
+          const backupList = localStorage.getItem('registered_drivers_backup');
+          let savedPassword = '123';
+          if (backupList) {
+            const backups = JSON.parse(backupList);
+            const matched = backups.find((b: any) => b.id === driverId);
+            if (matched && matched.password) {
+              savedPassword = matched.password;
+            }
+          }
+
+          const syncResponse = await fetch('/api/driver/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id: localDriver.id,
+              name: localDriver.name,
+              phone: localDriver.phone,
+              city: localDriver.city || '',
+              vehiclePlate: localDriver.vehiclePlate,
+              vehicleType: localDriver.vehicleType || 'Легковий евакуатор',
+              status: localDriver.status || 'active',
+              password: savedPassword
+            })
+          });
+
+          if (syncResponse.ok) {
+            const syncData = await syncResponse.json();
+            if (syncData.success) {
+              setDriver(syncData.driver);
+              console.log('Driver successfully re-synced with server on 404');
+              return;
+            }
+          }
+        }
+
+        // If sync fails and can't be restored, clear local session
+        setDriver(null);
+        localStorage.removeItem('logged_driver');
       }
     } catch (err) {
       console.error('Failed to fetch driver profile:', err);
@@ -132,15 +219,55 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
     }
 
     try {
-      const response = await fetch('/api/driver/login', {
+      // 1. Try normal login first
+      let response = await fetch('/api/driver/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: loginPhone, password: loginPassword }),
       });
 
-      const data = await response.json();
+      let data = await response.json();
+
+      // 2. If it fails but they are in our local backup list, auto-sync them to the server first!
+      if (!response.ok && (response.status === 401 || response.status === 404)) {
+        const backupListStr = localStorage.getItem('registered_drivers_backup');
+        if (backupListStr) {
+          const backups = JSON.parse(backupListStr);
+          const matchedBackup = backups.find((b: any) => cleanPhoneLocal(b.phone) === cleanPhoneLocal(loginPhone));
+          
+          if (matchedBackup && matchedBackup.password === loginPassword) {
+            // Restore driver to the stateless backend
+            const syncResponse = await fetch('/api/driver/sync', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                id: matchedBackup.id,
+                name: matchedBackup.name,
+                phone: matchedBackup.phone,
+                city: matchedBackup.city || '',
+                vehiclePlate: matchedBackup.vehiclePlate,
+                vehicleType: matchedBackup.vehicleType || 'Легковий евакуатор',
+                status: matchedBackup.status || 'active',
+                password: matchedBackup.password
+              })
+            });
+
+            if (syncResponse.ok) {
+              // Retry standard login now that server knows about them
+              response = await fetch('/api/driver/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone: loginPhone, password: loginPassword }),
+              });
+              data = await response.json();
+            }
+          }
+        }
+      }
+
       if (response.ok && data.success) {
         setDriver(data.driver);
+        updateDriverBackup(data.driver, loginPassword);
         setSuccess('Ви успішно увійшли в кабінет!');
         setError(null);
       } else {
@@ -181,6 +308,7 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
       const data = await response.json();
       if (response.ok && data.success) {
         setDriver(data.driver);
+        updateDriverBackup(data.driver, regPassword);
         setSuccess('Ваш аккаунт успішно зареєстровано!');
         setError(null);
       } else {
@@ -207,6 +335,7 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
       const data = await response.json();
       if (response.ok && data.success) {
         setDriver(data.driver);
+        updateDriverBackup(data.driver);
         if (onRefreshAllOrders) onRefreshAllOrders();
       } else {
         setError(data.error || 'Не вдалося оновити статус');
@@ -245,6 +374,7 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
       const data = await response.json();
       if (response.ok && data.success) {
         setDriver(data.driver);
+        updateDriverBackup(data.driver, changePasswordChecked && editPassword ? editPassword : undefined);
         setIsEditing(false);
         setEditPassword('');
         setChangePasswordChecked(false);
