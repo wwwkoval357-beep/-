@@ -14,7 +14,7 @@ import FAQ from './components/FAQ';
 import Footer from './components/Footer';
 import AdminPanel from './components/AdminPanel';
 import DriverPortal from './components/DriverPortal';
-import { TowOrder } from './types';
+import { TowOrder, Driver } from './types';
 import { motion, AnimatePresence } from 'motion/react';
 import { CheckCircle2, AlertTriangle, X, Send, Phone, Clock, Truck, Copy } from 'lucide-react';
 
@@ -22,6 +22,14 @@ export default function App() {
   const [orders, setOrders] = useState<TowOrder[]>([]);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isDriverPortalOpen, setIsDriverPortalOpen] = useState(false);
+  const [loggedDriver, setLoggedDriver] = useState<Driver | null>(() => {
+    try {
+      const stored = localStorage.getItem('logged_driver');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
   const [showAdminButton, setShowAdminButton] = useState<boolean>(() => {
     try {
       return localStorage.getItem('show_admin_button') === 'true' || localStorage.getItem('is_admin_logged') === 'true';
@@ -476,7 +484,40 @@ export default function App() {
           <DriverPortal
             onClose={() => setIsDriverPortalOpen(false)}
             onRefreshAllOrders={triggerRefreshOrders}
+            driver={loggedDriver}
+            setDriver={setLoggedDriver}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Floating Driver Badge when logged in and portal is closed */}
+      <AnimatePresence>
+        {loggedDriver && !isDriverPortalOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+            transition={{ duration: 0.3 }}
+            className="fixed bottom-6 right-6 z-40 bg-slate-900 border border-emerald-500/30 hover:border-emerald-400 text-white px-5 py-4.5 rounded-2xl shadow-2xl flex flex-col gap-2 cursor-pointer transition-all hover:shadow-emerald-500/10 group max-w-[280px] sm:max-w-xs"
+            onClick={() => setIsDriverPortalOpen(true)}
+            id="floating-driver-shift"
+          >
+            <div className="flex items-center gap-3">
+              <span className="relative flex h-2.5 w-2.5 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              </span>
+              <div className="flex-1">
+                <span className="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">Робоча зміна</span>
+                <span className="font-display font-black text-sm text-white group-hover:text-amber-400 transition-colors line-clamp-1">{loggedDriver.name}</span>
+              </div>
+              <Truck className="h-5 w-5 text-amber-500 shrink-0 group-hover:scale-110 transition-transform" />
+            </div>
+            <div className="text-[11px] text-slate-400 border-t border-slate-800/80 pt-1.5 flex justify-between items-center gap-4">
+              <span>Статус: <strong className="text-emerald-400 font-bold">{loggedDriver.status === 'active' ? 'Вільний' : 'На виклику'}</strong></span>
+              <span className="text-amber-500 font-bold text-[10px] uppercase tracking-wider group-hover:underline">Розгорнути &rarr;</span>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -486,6 +527,7 @@ export default function App() {
         onCallClick={() => setIsPhoneModalOpen(true)} 
         onAdminClick={showAdminButton ? () => setIsAdminOpen(true) : undefined} 
         onDriverClick={() => setIsDriverPortalOpen(true)}
+        loggedDriver={loggedDriver}
       />
 
       {/* Main content flow */}

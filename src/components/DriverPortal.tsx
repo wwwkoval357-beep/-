@@ -3,25 +3,18 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   User, Lock, Phone, Car, MapPin, LogOut, CheckCircle2, 
   RefreshCw, Eye, EyeOff, Save, Edit2, Shield, Circle, 
-  FileText, Settings, Key, X, Truck, AlertTriangle
+  FileText, Settings, Key, X, Truck, AlertTriangle, Minimize2
 } from 'lucide-react';
 import { Driver, TowOrder } from '../types';
 
 interface DriverPortalProps {
   onClose: () => void;
   onRefreshAllOrders?: () => void;
+  driver: Driver | null;
+  setDriver: React.Dispatch<React.SetStateAction<Driver | null>>;
 }
 
-export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPortalProps) {
-  // Auth state
-  const [driver, setDriver] = useState<Driver | null>(() => {
-    try {
-      const stored = localStorage.getItem('logged_driver');
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
-  });
+export default function DriverPortal({ onClose, onRefreshAllOrders, driver, setDriver }: DriverPortalProps) {
 
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [isEditing, setIsEditing] = useState(false);
@@ -464,13 +457,22 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950 flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 md:p-6">
+      {/* Backdrop */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.98 }}
-        transition={{ duration: 0.25, ease: 'easeOut' }}
-        className="w-full h-full bg-slate-950 flex flex-col relative"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-slate-950/85 backdrop-blur-md cursor-pointer"
+      />
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.97, y: 15 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.97, y: 15 }}
+        transition={{ duration: 0.22, ease: 'easeOut' }}
+        className="relative w-full h-full sm:h-[90vh] sm:max-w-5xl bg-slate-900 sm:border sm:border-slate-800/80 sm:rounded-3xl overflow-hidden shadow-2xl flex flex-col z-10"
         id="driver-portal-panel"
       >
         {/* Header decoration blur */}
@@ -492,12 +494,23 @@ export default function DriverPortal({ onClose, onRefreshAllOrders }: DriverPort
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onClose}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-400 hover:text-amber-400 rounded-lg hover:bg-slate-800 transition-colors border border-slate-800 hover:border-amber-500/20 cursor-pointer font-bold uppercase tracking-wide"
+              title="Згорнути кабінет водія"
+            >
+              <Minimize2 className="h-3.5 w-3.5 animate-pulse text-amber-500" />
+              <span className="hidden sm:inline text-white hover:text-amber-400">Згорнути</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+              title="Закрити"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         {/* Scrollable Body */}

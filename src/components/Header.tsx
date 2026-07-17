@@ -7,9 +7,10 @@ interface HeaderProps {
   onCallClick: () => void;
   onAdminClick?: () => void;
   onDriverClick: () => void;
+  loggedDriver?: any;
 }
 
-export default function Header({ onScrollTo, onCallClick, onAdminClick, onDriverClick }: HeaderProps) {
+export default function Header({ onScrollTo, onCallClick, onAdminClick, onDriverClick, loggedDriver }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full bg-slate-900/95 backdrop-blur-md border-b border-slate-800 text-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
@@ -68,12 +69,25 @@ export default function Header({ onScrollTo, onCallClick, onAdminClick, onDriver
         <div className="flex items-center space-x-3">
           <button
             onClick={onDriverClick}
-            className="flex items-center gap-2 px-3 py-2.5 sm:px-4 sm:py-3 bg-slate-800 hover:bg-slate-700 hover:text-amber-400 border border-slate-700 hover:border-amber-500/30 rounded-xl transition-all cursor-pointer text-xs font-black uppercase tracking-wider text-slate-300"
-            title="Кабінет водія евакуатора"
+            className={`flex items-center gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl transition-all cursor-pointer text-xs font-black uppercase tracking-wider ${
+              loggedDriver 
+                ? 'bg-slate-800/90 hover:bg-slate-800 text-amber-400 border border-emerald-500/50 hover:border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]' 
+                : 'bg-slate-800 hover:bg-slate-700 hover:text-amber-400 border border-slate-700 hover:border-amber-500/30 text-slate-300'
+            }`}
+            title={loggedDriver ? `Кабінет водія (Активний: ${loggedDriver.name})` : "Кабінет водія евакуатора"}
             id="driver-btn-header"
           >
-            <Truck className="h-4 w-4 text-amber-500" />
-            <span className="hidden sm:inline">Кабінет водія</span>
+            {loggedDriver ? (
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+            ) : (
+              <Truck className="h-4 w-4 text-amber-500 shrink-0" />
+            )}
+            <span className="hidden sm:inline">
+              {loggedDriver ? `Кабінет водія (${loggedDriver.name.split(' ')[0]})` : "Кабінет водія"}
+            </span>
           </button>
 
           {onAdminClick && (
