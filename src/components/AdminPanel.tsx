@@ -102,6 +102,7 @@ export default function AdminPanel({ onClose, allOrders, onRefreshOrders }: Admi
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await onRefreshOrders();
+    await fetchDrivers();
     setTimeout(() => setIsRefreshing(false), 800);
   };
 
