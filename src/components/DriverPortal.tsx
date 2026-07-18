@@ -20,6 +20,7 @@ export default function DriverPortal({ onClose, onRefreshAllOrders, driver, setD
   const [isMinimized, setIsMinimized] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showRegPassword, setShowRegPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -809,9 +810,10 @@ export default function DriverPortal({ onClose, onRefreshAllOrders, driver, setD
               {/* Registration Form */}
               {activeTab === 'register' && (
                 <form onSubmit={handleRegister} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5 sm:col-span-2">
+                  
+                  <div className="space-y-1.5 sm:col-span-2 text-left">
                     <label className="text-xs text-slate-400 font-bold uppercase tracking-wider block">
-                      Ваше Ім'я (ПІБ) *
+                      Ваше Ім'я (ПІБ) <span className="text-amber-500">*</span>
                     </label>
                     <div className="relative">
                       <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500">
@@ -822,15 +824,15 @@ export default function DriverPortal({ onClose, onRefreshAllOrders, driver, setD
                         placeholder="Олександр Петренко"
                         value={regName}
                         onChange={(e) => setRegName(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors placeholder:text-slate-600"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl h-11 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors placeholder:text-slate-600"
                         required
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 text-left">
                     <label className="text-xs text-slate-400 font-bold uppercase tracking-wider block">
-                      Номер телефону (Логін) *
+                      Номер телефону (Логін) <span className="text-amber-500">*</span>
                     </label>
                     <div className="relative">
                       <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500">
@@ -841,34 +843,41 @@ export default function DriverPortal({ onClose, onRefreshAllOrders, driver, setD
                         placeholder="+380XXXXXXXXX"
                         value={regPhone}
                         onChange={(e) => setRegPhone(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors placeholder:text-slate-600"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl h-11 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors placeholder:text-slate-600"
                         required
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 text-left">
                     <label className="text-xs text-slate-400 font-bold uppercase tracking-wider block">
-                      Пароль *
+                      Пароль <span className="text-amber-500">*</span>
                     </label>
                     <div className="relative">
                       <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500">
                         <Lock className="h-4 w-4" />
                       </span>
                       <input
-                        type="password"
+                        type={showRegPassword ? 'text' : 'password'}
                         placeholder="••••••"
                         value={regPassword}
                         onChange={(e) => setRegPassword(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors placeholder:text-slate-600"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl h-11 pl-11 pr-11 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors placeholder:text-slate-600"
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowRegPassword(!showRegPassword)}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-white cursor-pointer transition-colors"
+                      >
+                        {showRegPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 text-left">
                     <label className="text-xs text-slate-400 font-bold uppercase tracking-wider block">
-                      Державний номер авто (Евакуатора) *
+                      Державний номер авто <span className="text-amber-500">*</span>
                     </label>
                     <div className="relative">
                       <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500">
@@ -879,15 +888,15 @@ export default function DriverPortal({ onClose, onRefreshAllOrders, driver, setD
                         placeholder="BC 1234 HP"
                         value={regPlate}
                         onChange={(e) => setRegPlate(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors placeholder:text-slate-600 uppercase"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl h-11 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors placeholder:text-slate-600 uppercase"
                         required
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 text-left">
                     <label className="text-xs text-slate-400 font-bold uppercase tracking-wider block">
-                      Базове місто *
+                      Базове місто <span className="text-amber-500">*</span>
                     </label>
                     <div className="relative">
                       <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500">
@@ -895,47 +904,64 @@ export default function DriverPortal({ onClose, onRefreshAllOrders, driver, setD
                       </span>
                       <input
                         type="text"
-                        placeholder="Львів, Київ, тощо"
+                        placeholder="Львів, Київ тощо"
                         value={regCity}
                         onChange={(e) => setRegCity(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors placeholder:text-slate-600"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl h-11 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors placeholder:text-slate-600"
                         required
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-1.5 sm:col-span-2">
+                  <div className="space-y-1.5 sm:col-span-2 text-left">
                     <label className="text-xs text-slate-400 font-bold uppercase tracking-wider block">
-                      Тип / Характеристики Евакуатора *
+                      Тип / Характеристики Евакуатора <span className="text-amber-500">*</span>
                     </label>
-                    <select
-                      value={regVehicleType}
-                      onChange={(e) => setRegVehicleType(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors appearance-none cursor-pointer"
-                    >
-                      <option value="Легковий евакуатор">Легковий евакуатор (до 3 тонн)</option>
-                      <option value="Евакуатор з маніпулятором">Евакуатор з краном-маніпулятором</option>
-                      <option value="Вантажний евакуатор">Вантажний евакуатор (важка техніка)</option>
-                      <option value="Зі зсувною платформою">Евакуатор зі зсувною гідравлічною платформою</option>
-                      <option value="Двох'ярусний евакуатор">Двох'ярусний евакуатор</option>
-                    </select>
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 pointer-events-none">
+                        <Truck className="h-4 w-4" />
+                      </span>
+                      <select
+                        value={regVehicleType}
+                        onChange={(e) => setRegVehicleType(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl h-11 pl-11 pr-10 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors appearance-none cursor-pointer"
+                      >
+                        <option value="Легковий евакуатор">Легковий евакуатор (до 3 тонн)</option>
+                        <option value="Евакуатор з маніпулятором">Евакуатор з краном-маніпулятором</option>
+                        <option value="Вантажний евакуатор">Вантажний евакуатор (важка техніка)</option>
+                        <option value="Зі зсувною платформою">Евакуатор зі зсувною платформою</option>
+                        <option value="Двох'ярусний евакуатор">Двох'ярусний евакуатор</option>
+                      </select>
+                      <span className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-500">
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="sm:col-span-2 pt-4">
+                  <div className="sm:col-span-2 pt-4 text-center">
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:bg-slate-800 disabled:text-slate-600 text-white font-black py-4 rounded-xl text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-emerald-500/5"
+                      className="w-full bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:bg-slate-800 disabled:text-slate-600 text-white font-black py-4 rounded-xl text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-emerald-500/5 hover:shadow-emerald-500/10 flex items-center justify-center gap-2"
                     >
                       {loading ? (
-                        <span className="flex items-center justify-center gap-2">
+                        <>
                           <RefreshCw className="h-4 w-4 animate-spin" />
-                          Створення аккаунту...
-                        </span>
+                          Створення облікового запису...
+                        </>
                       ) : (
-                        "📝 Зареєструватись в системі"
+                        <>
+                          <CheckCircle2 className="h-4 w-4" />
+                          Зареєструватись у системі як партнер
+                        </>
                       )}
                     </button>
+                    
+                    <p className="text-[10px] text-slate-500 mt-3 leading-normal max-w-xl mx-auto">
+                      Натискаючи кнопку реєстрації, ви погоджуєтесь стати частиною мережі та приймати замовлення на евакуацію відповідно до вашого базового міста та статусу зайнятості.
+                    </p>
                   </div>
                 </form>
               )}
