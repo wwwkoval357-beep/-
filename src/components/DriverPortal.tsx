@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   User, Lock, Phone, Car, MapPin, LogOut, CheckCircle2, 
   RefreshCw, Eye, EyeOff, Save, Edit2, Shield, Circle, 
-  FileText, Settings, Key, X, Truck, AlertTriangle, Minimize2
+  FileText, Settings, Key, X, Truck, AlertTriangle, Minimize2, Maximize2
 } from 'lucide-react';
 import { Driver, TowOrder } from '../types';
 
@@ -17,6 +17,7 @@ interface DriverPortalProps {
 export default function DriverPortal({ onClose, onRefreshAllOrders, driver, setDriver }: DriverPortalProps) {
 
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
+  const [isMinimized, setIsMinimized] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -460,6 +461,169 @@ export default function DriverPortal({ onClose, onRefreshAllOrders, driver, setD
     }
   };
 
+  if (isMinimized) {
+    return (
+      <div className="fixed bottom-4 right-4 md:right-6 md:bottom-6 z-50 w-full max-w-[360px] h-auto flex flex-col pointer-events-auto">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 30 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 30 }}
+          className="relative w-full bg-slate-900 border-2 border-amber-500/30 rounded-2xl shadow-2xl overflow-hidden flex flex-col z-10"
+          id="driver-portal-minimized"
+        >
+          {/* Header */}
+          <div className="p-4 border-b border-slate-800 flex items-center justify-between z-10 bg-slate-900/50 backdrop-blur-sm">
+            <div className="flex items-center gap-2">
+              <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 p-1.5 rounded-lg">
+                <Truck className="h-4 w-4" />
+              </div>
+              <div className="text-left">
+                <h2 className="font-display font-black text-xs uppercase tracking-wide text-white">
+                  {driver ? `Кабінет: ${driver.name.split(' ')[0]}` : "Кабінет водія"}
+                </h2>
+                {driver && (
+                  <div className="flex items-center gap-1">
+                    <span className={`w-1.5 h-1.5 rounded-full ${driver.status === 'active' ? 'bg-emerald-500' : driver.status === 'busy' ? 'bg-amber-500' : 'bg-slate-500'}`}></span>
+                    <span className="text-[9px] text-slate-400 uppercase font-semibold">
+                      {driver.status === 'active' ? 'Вільний' : driver.status === 'busy' ? 'Зайнятий' : 'Офлайн'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setIsMinimized(false)}
+                className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                title="Розгорнути кабінет"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </button>
+              <button
+                onClick={onClose}
+                className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                title="Закрити повністю"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Minimized Body */}
+          <div className="p-4 overflow-y-auto flex-1 max-h-[350px] space-y-4">
+            {/* Messages */}
+            {error && (
+              <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 px-3 py-2 rounded-lg text-[10px] font-semibold leading-tight text-left">
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-2 rounded-lg text-[10px] font-semibold leading-tight text-left">
+                {success}
+              </div>
+            )}
+
+            {/* Status quick switcher */}
+            {driver && (
+              <div className="bg-slate-950/40 border border-slate-800/80 p-2 rounded-xl flex items-center justify-between text-xs">
+                <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Статус:</span>
+                <div className="flex gap-1">
+                  <button 
+                    type="button"
+                    onClick={() => handleUpdateStatus('active')}
+                    className={`px-2 py-1 rounded text-[9px] font-bold transition-all cursor-pointer ${driver.status === 'active' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-black' : 'text-slate-400 hover:bg-slate-800'}`}
+                  >
+                    Вільний
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => handleUpdateStatus('busy')}
+                    className={`px-2 py-1 rounded text-[9px] font-bold transition-all cursor-pointer ${driver.status === 'busy' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 font-black' : 'text-slate-400 hover:bg-slate-800'}`}
+                  >
+                    Зайнятий
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => handleUpdateStatus('offline')}
+                    className={`px-2 py-1 rounded text-[9px] font-bold transition-all cursor-pointer ${driver.status === 'offline' ? 'bg-slate-800 text-slate-400 border border-slate-700' : 'text-slate-500 hover:bg-slate-800'}`}
+                  >
+                    Офлайн
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Assigned Orders List */}
+            {driver ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Ваші замовлення в роботі:</span>
+                  <span className="bg-amber-500/20 text-amber-400 font-mono text-[9px] px-2 py-0.5 rounded-full font-bold">
+                    {assignedOrders.length}
+                  </span>
+                </div>
+
+                {assignedOrders.length === 0 ? (
+                  <p className="text-[10px] text-slate-500 text-center py-4 bg-slate-950/20 border border-dashed border-slate-800/80 rounded-xl leading-normal">
+                    Немає активних викликів
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
+                    {assignedOrders.map(order => (
+                      <div key={order.id} className="bg-slate-950/50 border border-slate-850 p-2.5 rounded-xl space-y-1.5 text-xs text-left font-sans">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-amber-400 font-bold text-[10px]">#{order.orderNumber || order.id.slice(0, 5).toUpperCase()}</span>
+                          <span className={`text-[8px] px-1 py-0.2 rounded uppercase font-black tracking-wider ${
+                            order.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400' :
+                            order.status === 'dispatched' ? 'bg-amber-500/10 text-amber-400' :
+                            'bg-slate-800 text-slate-400'
+                          }`}>
+                            {order.status === 'dispatched' ? 'В дорозі' :
+                             order.status === 'completed' ? 'Завершено' : order.status}
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-slate-300 leading-snug space-y-0.5">
+                          <p><span className="text-slate-500">З:</span> {order.fromLocation.split(',')[0]}</p>
+                          <p><span className="text-slate-500">До:</span> {order.toLocation.split(',')[0]}</p>
+                          <p className="font-bold text-emerald-400">{order.estimatedPrice} грн</p>
+                        </div>
+                        {order.status !== 'completed' && (
+                          <div className="flex gap-1.5 pt-1">
+                            {order.status === 'dispatched' && (
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateOrderStatus(order.id, 'completed')}
+                                className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1 rounded-lg text-[9px] uppercase tracking-wide cursor-pointer text-center"
+                              >
+                                🏁 Виконано / Прибув
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-4 space-y-2">
+                <p className="text-xs text-slate-400 leading-normal">Будь ласка, увійдіть до кабінету, щоб бачити замовлення.</p>
+                <button
+                  type="button"
+                  onClick={() => setIsMinimized(false)}
+                  className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-[9px] uppercase tracking-wide cursor-pointer"
+                >
+                  Увійти в кабінет
+                </button>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 md:p-6">
       {/* Backdrop */}
@@ -494,20 +658,22 @@ export default function DriverPortal({ onClose, onRefreshAllOrders, driver, setD
                 {driver ? "Кабінет Водія" : "Портал Евакуаторів"}
               </h2>
               <p className="text-xs text-slate-400">
-                {driver ? `Вітаємо, ${driver.name}!` : "Реєстрація та вхід для партнерів-водіїв"}
+                {driver ? `Вітаємо, ${driver.name}!` : "Реєстрація та вхід для партнеров-водіїв"}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={onClose}
+              type="button"
+              onClick={() => setIsMinimized(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-400 hover:text-amber-400 rounded-lg hover:bg-slate-800 transition-colors border border-slate-800 hover:border-amber-500/20 cursor-pointer font-bold uppercase tracking-wide"
-              title="Згорнути кабінет водія"
+              title="Згорнути кабінет у куток"
             >
               <Minimize2 className="h-3.5 w-3.5 animate-pulse text-amber-500" />
               <span className="hidden sm:inline text-white hover:text-amber-400">Згорнути</span>
             </button>
             <button
+              type="button"
               onClick={onClose}
               className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
               title="Закрити"
