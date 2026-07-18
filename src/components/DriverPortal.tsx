@@ -464,7 +464,7 @@ export default function DriverPortal({ onClose, onRefreshAllOrders, driver, setD
 
   if (isMinimized) {
     return (
-      <div className="fixed bottom-4 right-4 md:right-6 md:bottom-6 z-50 w-full max-w-[360px] h-auto flex flex-col pointer-events-auto">
+      <div className="fixed bottom-4 right-4 md:right-6 md:bottom-6 z-[100] w-full max-w-[360px] h-auto flex flex-col pointer-events-auto">
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -626,7 +626,7 @@ export default function DriverPortal({ onClose, onRefreshAllOrders, driver, setD
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 md:p-6">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 md:p-6">
       {/* Backdrop */}
       <motion.div
         initial={{ opacity: 0 }}
