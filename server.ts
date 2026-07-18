@@ -73,9 +73,13 @@ async function startServer() {
     return [];
   }
 
+  let isFreshDrivers = false;
+  let isFreshOrders = false;
+
   function saveDrivers(drivers: ServerDriver[]) {
     try {
       fs.writeFileSync(DRIVERS_FILE, JSON.stringify(drivers, null, 2), "utf-8");
+      isFreshDrivers = false;
     } catch (err) {
       console.error("Error saving drivers:", err);
     }
@@ -95,6 +99,7 @@ async function startServer() {
   function saveOrders(orders: ServerOrder[]) {
     try {
       fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2), "utf-8");
+      isFreshOrders = false;
     } catch (err) {
       console.error("Error saving orders:", err);
     }
@@ -102,7 +107,17 @@ async function startServer() {
 
   let ordersDb: ServerOrder[] = loadOrders();
   let driversDb: ServerDriver[] = loadDrivers();
+  
+  // Set initial freshness flags based on loaded lists
+  isFreshDrivers = driversDb.length === 0;
+  isFreshOrders = ordersDb.length === 0;
+
   let lastOrderNumber = 1000;
+
+  // API route to get sync status of the server
+  app.get("/api/sync/status", (req, res) => {
+    res.json({ isFreshDrivers, isFreshOrders });
+  });
 
   // API route for getting all orders
   app.get("/api/orders", (req, res) => {
@@ -401,6 +416,51 @@ ${order.driverName ? `🚚 *Призначений водій:* ${order.driverNa
 
     const { password: _, ...driverResponse } = driver;
     res.json({ success: true, driver: driverResponse });
+  });
+
+  // Synchronize and restore all drivers (distributed backup)
+  app.post("/api/sync/all-drivers", (req, res) => {
+    const { drivers } = req.body;
+    if (Array.isArray(drivers)) {
+      drivers.forEach(d => {
+        if (d && d.id) {
+          const exists = driversDb.some(existing => existing.id === d.id);
+          if (!exists) {
+            driversDb.push({
+              id: d.id,
+              name: String(d.name || "").trim(),
+              phone: String(d.phone || "").trim(),
+              password: String(d.password || "123").trim(),
+              city: String(d.city || "").trim(),
+              vehiclePlate: String(d.vehiclePlate || "").toUpperCase().trim(),
+              vehicleType: String(d.vehicleType || "Легковий евакуатор").trim(),
+              status: d.status || 'active'
+            });
+          }
+        }
+      });
+      saveDrivers(driversDb);
+      console.log(`[SYNC-ALL-DRIVERS] Merged client drivers. Total drivers on server: ${driversDb.length}`);
+    }
+    res.json({ success: true, drivers: driversDb });
+  });
+
+  // Synchronize and restore all orders (distributed backup)
+  app.post("/api/sync/all-orders", (req, res) => {
+    const { orders } = req.body;
+    if (Array.isArray(orders)) {
+      orders.forEach(o => {
+        if (o && o.id) {
+          const exists = ordersDb.some(existing => existing.id === o.id);
+          if (!exists) {
+            ordersDb.push(o);
+          }
+        }
+      });
+      saveOrders(ordersDb);
+      console.log(`[SYNC-ALL-ORDERS] Merged client orders. Total orders on server: ${ordersDb.length}`);
+    }
+    res.json({ success: true, orders: ordersDb });
   });
 
   // Driver Update Profile & Status

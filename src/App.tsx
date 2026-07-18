@@ -123,23 +123,96 @@ export default function App() {
 
   React.useEffect(() => {
     let active = true;
-    const fetchOrders = async () => {
+
+    const performSync = async () => {
       try {
-        const response = await fetch('/api/orders');
-        if (response.ok && active) {
-          const serverOrders = await response.json();
+        // 1. Fetch current sync status from the server
+        const statusRes = await fetch('/api/sync/status');
+        if (!statusRes.ok || !active) return;
+        const status = await statusRes.json();
+
+        // 2. Sync Orders if the server is freshly started / wiped
+        if (status.isFreshOrders) {
+          const backupOrdersStr = localStorage.getItem('backup_all_orders');
+          if (backupOrdersStr) {
+            const backups = JSON.parse(backupOrdersStr);
+            if (backups.length > 0) {
+              console.log('[SYNC] Server database has no orders. Restoring from client backup...', backups.length);
+              await fetch('/api/sync/all-orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orders: backups })
+              });
+            }
+          }
+        }
+
+        // 3. Sync Drivers if the server is freshly started / wiped
+        if (status.isFreshDrivers) {
+          const backupDriversStr = localStorage.getItem('registered_drivers_backup');
+          if (backupDriversStr) {
+            const backups = JSON.parse(backupDriversStr);
+            if (backups.length > 0) {
+              console.log('[SYNC] Server database has no drivers. Restoring from client backup...', backups.length);
+              await fetch('/api/sync/all-drivers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ drivers: backups })
+              });
+            }
+          }
+        }
+
+        // 4. Fetch actual Orders and update UI & Local Backup
+        const ordersRes = await fetch('/api/orders');
+        if (ordersRes.ok && active) {
+          const serverOrders = await ordersRes.json();
           if (Array.isArray(serverOrders)) {
             setOrders(serverOrders);
+            if (serverOrders.length > 0) {
+              localStorage.setItem('backup_all_orders', JSON.stringify(serverOrders));
+            }
+          }
+        }
+
+        // 5. Fetch actual Drivers and update local backup of drivers (with credentials)
+        const driversRes = await fetch('/api/admin/drivers');
+        if (driversRes.ok && active) {
+          const serverDrivers = await driversRes.json();
+          if (Array.isArray(serverDrivers) && serverDrivers.length > 0) {
+            try {
+              const backupDriversStr = localStorage.getItem('registered_drivers_backup');
+              let backups = backupDriversStr ? JSON.parse(backupDriversStr) : [];
+              
+              serverDrivers.forEach((sd: any) => {
+                const idx = backups.findIndex((b: any) => b.id === sd.id);
+                if (idx !== -1) {
+                  backups[idx] = {
+                    ...backups[idx],
+                    ...sd,
+                    password: sd.password || backups[idx].password || '123'
+                  };
+                } else {
+                  backups.push({
+                    ...sd,
+                    password: sd.password || '123'
+                  });
+                }
+              });
+              localStorage.setItem('registered_drivers_backup', JSON.stringify(backups));
+            } catch (mergeErr) {
+              localStorage.setItem('registered_drivers_backup', JSON.stringify(serverDrivers));
+            }
           }
         }
       } catch (err) {
-        console.error('Error polling orders:', err);
+        console.error('[SYNC] Synchronization failed:', err);
       }
     };
 
-    // Poll every 3 seconds
-    const interval = setInterval(fetchOrders, 3000);
-    fetchOrders(); // initial fetch
+    // Run synchronization every 3.5 seconds
+    const interval = setInterval(performSync, 3500);
+    performSync();
 
     return () => {
       active = false;
@@ -490,36 +563,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Floating Driver Badge when logged in and portal is closed */}
-      <AnimatePresence>
-        {loggedDriver && !isDriverPortalOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            transition={{ duration: 0.3 }}
-            className="fixed bottom-6 right-6 z-40 bg-slate-900 border border-emerald-500/30 hover:border-emerald-400 text-white px-5 py-4.5 rounded-2xl shadow-2xl flex flex-col gap-2 cursor-pointer transition-all hover:shadow-emerald-500/10 group max-w-[280px] sm:max-w-xs"
-            onClick={() => setIsDriverPortalOpen(true)}
-            id="floating-driver-shift"
-          >
-            <div className="flex items-center gap-3">
-              <span className="relative flex h-2.5 w-2.5 shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-              </span>
-              <div className="flex-1">
-                <span className="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">Робоча зміна</span>
-                <span className="font-display font-black text-sm text-white group-hover:text-amber-400 transition-colors line-clamp-1">{loggedDriver.name}</span>
-              </div>
-              <Truck className="h-5 w-5 text-amber-500 shrink-0 group-hover:scale-110 transition-transform" />
-            </div>
-            <div className="text-[11px] text-slate-400 border-t border-slate-800/80 pt-1.5 flex justify-between items-center gap-4">
-              <span>Статус: <strong className="text-emerald-400 font-bold">{loggedDriver.status === 'active' ? 'Вільний' : 'На виклику'}</strong></span>
-              <span className="text-amber-500 font-bold text-[10px] uppercase tracking-wider group-hover:underline">Розгорнути &rarr;</span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
 
       {/* Header */}
       <Header 

@@ -219,6 +219,7 @@ export default function DriverPortal({ onClose, onRefreshAllOrders, driver, setD
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     setLoading(true);
 
     if (!loginPhone || !loginPassword) {
@@ -292,6 +293,7 @@ export default function DriverPortal({ onClose, onRefreshAllOrders, driver, setD
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     setLoading(true);
 
     if (!regName || !regPhone || !regPassword || !regPlate) {
@@ -333,6 +335,7 @@ export default function DriverPortal({ onClose, onRefreshAllOrders, driver, setD
   const handleUpdateStatus = async (status: Driver['status']) => {
     if (!driver) return;
     setError(null);
+    setSuccess(null);
 
     try {
       const response = await fetch('/api/driver/update-profile', {
@@ -358,6 +361,7 @@ export default function DriverPortal({ onClose, onRefreshAllOrders, driver, setD
     e.preventDefault();
     if (!driver) return;
     setError(null);
+    setSuccess(null);
     setLoading(true);
 
     try {
@@ -544,7 +548,7 @@ export default function DriverPortal({ onClose, onRefreshAllOrders, driver, setD
               {/* Tab Selector */}
               <div className="flex bg-slate-950 p-1.5 rounded-2xl border border-slate-850">
                 <button
-                  onClick={() => { setActiveTab('login'); setError(null); }}
+                  onClick={() => { setActiveTab('login'); setError(null); setSuccess(null); }}
                   className={`flex-1 py-3 text-xs uppercase font-black tracking-wider rounded-xl transition-all cursor-pointer ${
                     activeTab === 'login'
                       ? 'bg-slate-800 text-amber-400 shadow-md'
@@ -554,7 +558,7 @@ export default function DriverPortal({ onClose, onRefreshAllOrders, driver, setD
                   🚪 ВХІД
                 </button>
                 <button
-                  onClick={() => { setActiveTab('register'); setError(null); }}
+                  onClick={() => { setActiveTab('register'); setError(null); setSuccess(null); }}
                   className={`flex-1 py-3 text-xs uppercase font-black tracking-wider rounded-xl transition-all cursor-pointer ${
                     activeTab === 'register'
                       ? 'bg-slate-800 text-amber-400 shadow-md'
